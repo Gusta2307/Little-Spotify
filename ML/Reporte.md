@@ -94,7 +94,7 @@ Luego se obtienen mejores resultados con: Keras, KNN y SVC. Ahora analicemos a m
 ## Análisis de las curvas de aprendizajes 
 
 
-## Bibliograf
+## Bibliografía
 
 - [Procesando audio con Python](https://programmerclick.com/article/4979571746/)
 
