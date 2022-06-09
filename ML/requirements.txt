@@ -1,0 +1,7 @@
+pandas
+numpy
+tensorflow
+scikit_learn
+librosa
+pydub
+colorama
