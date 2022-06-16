@@ -1,4 +1,4 @@
-from tensorflow.keras import Sequential, layers
+# from tensorflow.keras import Sequential, layers
 from sklearn.svm import SVC
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report
