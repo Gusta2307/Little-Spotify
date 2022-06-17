@@ -10,6 +10,7 @@ import struct
 import socket
 import pyaudio
 import wave
+from pydub import AudioSegment
 from utils import (
     hashing, 
     get_music_data_instance, 
@@ -115,23 +116,13 @@ class MusicDataNode:
                     break
         
         return songs
-    
+
     def find_song(self, music_name):
         _songs = []
         for mn in os.listdir(self.path):
             if re.search(music_name, mn):
                 _songs.append(mn)
         return _songs
-        
-        
-        full_path = os.path.join(self.path, music_name)
-        if os.path.exists(full_path):
-            return open(full_path, 'rb')
-            # with open('audio.wav', 'rb') as fh:
-            #     while fh.tell() != FILE_SIZE: # get the file-size from the os module
-            #         AUDIO_FRAME = fh.read(CHUNK_SIZE)
-            #         OutputChecker.write(AUDIO_FRAME)
-        return None
 
 
     def send_music_data(self, music_name, r_address):
@@ -146,14 +137,15 @@ class MusicDataNode:
     def _send_frames(self, server_socket, music_name, r_ip, port):
         server_socket.listen(5)
         CHUNK = 1024
-        wf = wave.open(os.path.join(self.path, music_name), 'rb')
-        p = pyaudio.PyAudio()
+        # wf = wave.open(os.path.join(self.path, music_name), 'rb')
+
+        music_file = AudioSegment.from_file(os.path.join(self.path, music_name))
+
+        _slice = 10
+        start = 0 
+        end = _slice
+
         print('server listening at',(r_ip, port))
-        stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
-                        channels=wf.getnchannels(),
-                        rate=wf.getframerate(),
-                        input=True,
-                        frames_per_buffer=CHUNK)
 
         client_socket,addr = server_socket.accept()
     
@@ -162,13 +154,16 @@ class MusicDataNode:
             if client_socket:
                 while True:
                     try:
-                        data = wf.readframes(CHUNK)
+                        data = music_file[start*1000:end*1000]._data
                         a = pickle.dumps(data)
                         message = struct.pack("Q",len(a))+a
                         client_socket.sendall(message)
 
                         if data == b'':
                             break
+
+                        start = end
+                        end += _slice
                     except:
                         client_socket.close()
                 break
@@ -181,7 +176,7 @@ class MusicDataNode:
                 replicate_send_thread = threading.Thread(target=self.send_replicate_song, args=([music_name, node]))
                 replicate_send_thread.start() 
             else:
-                print("REPLICA: El archivo ya se a replicado")
+                print("REPLICA: El archivo ya se ha replicado")
 
     def contain_song(self, music_name):
         return music_name in os.listdir(path=self.path)

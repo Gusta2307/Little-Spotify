@@ -90,23 +90,18 @@ class RequestNode:
         
         
     def play_song(self, md_add, music_name):
-        print("HOLAAAAAA")
-        # try:
         music_node = get_music_data_instance(md_add)
 
         port = music_node.send_music_data(music_name, self.address)
-        print("PORT", port)
 
         server_socket = socket.socket()
         c_host_ip, _ = self.address.split(':')
         server_socket.bind((self.address.split(':')[0], 0))
         print('server client listening at',(c_host_ip, server_socket.getsockname()[1]))
 
-        # t1 = threading.Thread(target=music_node.send_music_data, args=([music_name, self.address]))
         t2 = threading.Thread(target=self._recv_song_frames, args=([md_add, port, server_socket]))
         t3 = threading.Thread(target=music_node.replicate_song, args=([music_name]))
 
-        # t1.start()
         t2.start()
         t3.start()
         
@@ -115,14 +110,7 @@ class RequestNode:
 
     def _recv_song_frames(self, md_add, port, server_socket):
         host_ip, _ = md_add.split(':')
-        p = pyaudio.PyAudio()
-        CHUNK = 1024
-        stream = p.open(format=p.get_format_from_width(2),
-                        channels=2,
-                        rate=44100,
-                        output=True,
-                        frames_per_buffer=CHUNK)
-                        
+        
         # create socket
         client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         socket_address = (host_ip, port)
@@ -158,7 +146,6 @@ class RequestNode:
                 if c:
                     a = pickle.dumps(frame)
                     message = struct.pack("Q",len(a))+a
-                    print("Send frame")
                     c.sendall(message)
 
                 # stream.write(frame)

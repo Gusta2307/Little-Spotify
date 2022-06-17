@@ -34,13 +34,14 @@ class ClientNode:
             ##
             responses_song = r_node.request_response(song_name)
             count = 0
-            for s in responses_song[1]:
-                print(f"{count}. {s}")
-                count += 1
-            index = int(input("Enter song index: "))
-            ##
-            # r_node.play_song(responses_song[index])
-            self.recv_music(responses_song[0],responses_song[1][index])
+            if responses_song:
+                for s in responses_song[1]:
+                    print(f"{count}. {s}")
+                    count += 1
+                index = int(input("Enter song index: "))
+                ##
+                # r_node.play_song(responses_song[index])
+                self.recv_music(responses_song[0],responses_song[1][index])
             pass
         
     def recv_music(self, md_add, music_index):
