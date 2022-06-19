@@ -30,19 +30,25 @@ class ClientNode:
             return
         
         while True:
-            song_name = input("Enter song name: ")
-            ##
-            responses_song = r_node.request_response(song_name)
-            count = 0
-            if responses_song:
-                for s in responses_song[1]:
-                    print(f"{count}. {s}")
-                    count += 1
-                index = int(input("Enter song index: "))
-                ##
-                # r_node.play_song(responses_song[index])
-                self.recv_music(responses_song[0],responses_song[1][index])
-            pass
+            options = int(input("0. Play music.\n1. Upload music\n"))
+
+            if options == 0:
+                song_name = input("Enter song name: ")
+                if song_name == '':
+                    break
+            
+                responses_song = r_node.request_response(song_name)
+                count = 0
+                if responses_song:
+                    for s in responses_song[1]:
+                        print(f"{count}. {s}")
+                        count += 1
+                    index = int(input("Enter song index: "))
+                    self.recv_music(responses_song[0],responses_song[1][index])
+            elif options == 1:
+                path_song = input("Enter path of song: ")
+                self.upload_song(path_song)
+            
         
     def recv_music(self, md_add, music_index):
         # try:
@@ -106,6 +112,48 @@ class ClientNode:
             client_socket.close()
             print('Audio closed')
 
+    def upload_song(self, path):
+        if os.path.exists(path):
+            print("UPLOAD")
+            send_up_song = threading.Thread(target=self.send_upload_song, args=([path]))
+            send_up_song.start()
+        else:
+            print("ERROR: Invalid path")
+
+    def send_upload_song(self, path):
+        r_node = get_request_node_instance(self.request_node_address)
+        if r_node is None:
+            print(f"ERROR: Missing connection to server {self.request_node_address}")
+            return
+
+        host_ip, _ = self.address.split(':')
+        CHUNK_SIZE = 5 * 1024
+        print("SENT UPLOAD SONG")
+        
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            s.bind((host_ip, 0))
+            print("PORT ASSIGNED")
+            time.sleep(1)
+            replicate_recv_thread = threading.Thread(target=r_node.put_song_in_music_data, args=([path.split('/')[-1], (host_ip, s.getsockname()[1])]))
+            replicate_recv_thread.start()
+
+            s.listen(1)
+            conn, _ = s.accept()
+            print("CONNECTED CLIENT WITH REQUEST")
+            with conn:
+                with open(path, 'rb') as f:
+                    data = f.read(CHUNK_SIZE)
+                    while data:
+                        conn.sendall(data)
+                        data = f.read(CHUNK_SIZE)
+                        if data == b'':
+                            conn.close()
+                            break
+
+            print('CLIENT FINISH SEND UPLOAD SONG TO REQUEST')
+            s.close()
+
     def connect_to_server(self):
         for r_node in self._request_node_list:
             print(f"Trying connect to {r_node}")
@@ -131,12 +179,17 @@ class ClientNode:
             
         
 
-def main(address, r_address):
+def main(address, r_address, path=None):
+    print("PATH", path)
     node = ClientNode(address, r_address)
+    print("RUN...")
     node.run()
-
+    print("RUNNING")
     check_connetion_thread = threading.Thread(target=node.check_connection)
     check_connetion_thread.start()
+
+    upload_song = threading.Thread(target=node.upload_song, args=([path]))
+    upload_song.start()
 
     # host_ip, host_port = address.split(':')
     # try:
@@ -154,5 +207,7 @@ def main(address, r_address):
 if __name__ == '__main__':
     if len(sys.argv) == 3:
         main(sys.argv[1], sys.argv[2])
+    elif len(sys.argv) == 4:
+        main(sys.argv[1], sys.argv[2], sys.argv[3])
     else:
         print('Error: Missing arguments')

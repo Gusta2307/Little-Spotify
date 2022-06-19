@@ -32,6 +32,9 @@ class MusicDataNode:
     def music_data_list(self):
         return self._music_data_list 
     
+    def ping(self):
+        return True
+
     def add_music_data(self, address):
         if address not in self._music_data_list:
             self._music_data_list.append(address)
@@ -124,17 +127,16 @@ class MusicDataNode:
                 _songs.append(mn)
         return _songs
 
-
-    def send_music_data(self, music_name, r_address):
+    def send_music_data(self, music_name, _start=0):
         host_ip, _ = self.address.split(":")
         server_socket = socket.socket()
         server_socket.bind((host_ip, 0))
         port = server_socket.getsockname()[1]
-        t1 = threading.Thread(target=self._send_frames, args=([server_socket, music_name, host_ip, port]))
+        t1 = threading.Thread(target=self._send_frames, args=([server_socket, music_name, host_ip, port, _start]))
         t1.start()
         return port
 
-    def _send_frames(self, server_socket, music_name, r_ip, port):
+    def _send_frames(self, server_socket, music_name, r_ip, port, _start=0):
         server_socket.listen(5)
         CHUNK = 1024
         # wf = wave.open(os.path.join(self.path, music_name), 'rb')
@@ -142,12 +144,12 @@ class MusicDataNode:
         music_file = AudioSegment.from_file(os.path.join(self.path, music_name))
 
         _slice = 10
-        start = 0 
-        end = _slice
+        start = _start
+        end = start + _slice
 
         print('server listening at',(r_ip, port))
 
-        client_socket,addr = server_socket.accept()
+        client_socket,_ = server_socket.accept()
     
         data = None
         while True:
@@ -155,10 +157,11 @@ class MusicDataNode:
                 while True:
                     try:
                         data = music_file[start*1000:end*1000]._data
+                        print(data)
                         a = pickle.dumps(data)
                         message = struct.pack("Q",len(a))+a
                         client_socket.sendall(message)
-
+                        print(f'Sent song {end}')
                         if data == b'':
                             break
 
@@ -210,6 +213,7 @@ class MusicDataNode:
         FILE = os.path.join(self.path, music_name)
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.connect((host_ip, int(port)))
 
             with open(FILE, "wb") as f:        
@@ -221,6 +225,27 @@ class MusicDataNode:
                     if chunk == b'':
                         break
             print(f'Replicacion Completada: {music_name} {self.address}')
+            s.close()
+
+    def put_upload_song(self, song_name, request_conn):
+        # host_ip, _ = request_address.split(':')
+        CHUNK_SIZE = 5 * 1024
+
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.connect(request_conn)
+
+            with open(os.path.join(self.path, song_name), "wb") as f:        
+                data = s.recv(CHUNK_SIZE)
+
+                while data:
+                    f.write(data)
+                    data = s.recv(CHUNK_SIZE)
+
+                    if data == b'':
+                        break
+                f.close()
+
+            print(f'SONG {song_name} UPLOADED TO {self.address}')
             s.close()
 
 def main(address, md_address, chord_address, bits, path):
@@ -246,8 +271,8 @@ def main(address, md_address, chord_address, bits, path):
         musicdata_node_list_thread = threading.Thread(target=node.update_music_data_list)
         musicdata_node_list_thread.start()
         
-        print_thread = threading.Thread(target = node.print_node_info)
-        print_thread.start()
+        # print_thread = threading.Thread(target = node.print_node_info)
+        # print_thread.start()
     
     else:
         print(f'Error: Could not connect to the network, no music data with address: {md_address}')

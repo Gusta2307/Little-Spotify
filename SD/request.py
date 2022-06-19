@@ -66,40 +66,17 @@ class RequestNode:
         return []
                 
         
-        # music_node = get_music_data_instance(self.music_data_address)
-
-        # if music_node == None:
-        #     music_data = self.change_musicdata_node()
-        
-        # try:
-        #     song = music_node.get_music_by_name(music_name)
-        #     if song:
-        #         song = song[0]
-        #     p = pyaudio.PyAudio()
-
-        #     stream = p.open(format=p.get_format_from_width(song.getsampwidth()),
-        #             channels=song.getnchannels(),
-        #             rate=song.getframerate(),
-        #             input=True,
-        #             frames_per_buffer=1024)
-                    
-
-        # except:
-        #     print("ERROR")
-        #     return None
-        
-        
     def play_song(self, md_add, music_name):
         music_node = get_music_data_instance(md_add)
 
-        port = music_node.send_music_data(music_name, self.address)
+        port = music_node.send_music_data(music_name)
 
         server_socket = socket.socket()
         c_host_ip, _ = self.address.split(':')
         server_socket.bind((self.address.split(':')[0], 0))
         print('server client listening at',(c_host_ip, server_socket.getsockname()[1]))
 
-        t2 = threading.Thread(target=self._recv_song_frames, args=([md_add, port, server_socket]))
+        t2 = threading.Thread(target=self._recv_song_frames, args=([md_add, port, server_socket, music_node, music_name]))
         t3 = threading.Thread(target=music_node.replicate_song, args=([music_name]))
 
         t2.start()
@@ -108,9 +85,10 @@ class RequestNode:
         return server_socket.getsockname()[1]
 
 
-    def _recv_song_frames(self, md_add, port, server_socket):
+    def _recv_song_frames(self, md_add, port, server_socket, music_node, music_name):
         host_ip, _ = md_add.split(':')
-        
+
+        CHUNK = 1024
         # create socket
         client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         socket_address = (host_ip, port)
@@ -123,10 +101,38 @@ class RequestNode:
         data = b""
         payload_size = struct.calcsize("Q")
         c,_ = server_socket.accept()
+        current_duration = 0 #+= CHUNK/44100
         while True:
-            try:
+            # try:
+                try:
+                    music_node.ping()
+                except:
+                    temp_music_node = None
+                    for md in self.music_data_list:
+                        print(md)
+                        try:
+                            temp_music_node = get_music_data_instance(md)
+                            if temp_music_node.contain_song(music_name):
+                                print("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG")
+                                _port = temp_music_node.send_music_data(music_name, int(current_duration))
+                                print("PORT:", _port)
+                                print((md.split(':')[0], _port))
+                                client_socket.close()
+                                client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+                                client_socket.connect((md.split(':')[0], _port))
+                                music_node = temp_music_node
+                                print("IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII")
+                                break
+
+                        except:
+                            continue
+                    if temp_music_node is  None:
+                        print("ERROR: Trying connect to other music data.")
+                        return
+
                 while len(data) < payload_size:
                     packet = client_socket.recv(4*1024) # 4K
+                    current_duration += CHUNK/44100
                     if not packet: break
                     data+=packet
                 packed_msg_size = data[:payload_size]
@@ -134,10 +140,11 @@ class RequestNode:
                 msg_size = struct.unpack("Q",packed_msg_size)[0]
                 while len(data) < msg_size:
                     data += client_socket.recv(4*1024)
+                    current_duration += CHUNK/44100
                 frame_data = data[:msg_size]
                 data  = data[msg_size:]
                 frame = pickle.loads(frame_data)
-
+                print(current_duration)
                 if frame == b'':
                     server_socket.close()
                     client_socket.close()
@@ -147,13 +154,14 @@ class RequestNode:
                     a = pickle.dumps(frame)
                     message = struct.pack("Q",len(a))+a
                     c.sendall(message)
+                    
 
                 # stream.write(frame)
 
-            except:
-                server_socket.close()
-                client_socket.close()
-                break
+            # except:
+            #     server_socket.close()
+            #     client_socket.close()
+            #     break
 
         print('Audio closed')
 
@@ -182,7 +190,58 @@ class RequestNode:
                 if node is None:
                     self._requests_list.remove(addr)
             time.sleep(1) 
+
+    def put_song_in_music_data(self, path, client_conn):
+        print("PUT SONG IN MUSIC DATA REQUEST")
+        # host_ip_client, _ = client_address.split(':')
+        request_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # socket_address = (host_ip_client, port_client)
+        # print('server listening at', client_address)
+
+        request_socket.connect(client_conn)        
+        print("REQUEST CONNECTED TO CLIENT WITH ADDRESS", client_conn)
+
+        music_data_node = get_music_data_instance(self.music_data_address)
+        
+        if music_data_node is None:
+            print(f"ERROR: Missing connection to server {self.music_data_address}")
+            return
+        
+        if music_data_node.contain_song(path):
+            print(f"ERROR: The song {path} is already exist")
+            return 
+
+        host_ip, _ = self.music_data_address.split(':')
+        CHUNK_SIZE = 5 * 1024
+
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            # s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            s.bind((host_ip, 0))
             
+            time.sleep(1)
+            replicate_recv_thread = threading.Thread(target=music_data_node.put_upload_song, args=([path, (host_ip, s.getsockname()[1])]))
+            replicate_recv_thread.start()
+
+            s.listen(1)
+            conn, _ = s.accept()
+
+            if conn:
+                print("BBBBBBBBBBBBBBBBBBBBBBBBBBB")
+                data = request_socket.recv(CHUNK_SIZE)
+
+                while data:
+                    conn.sendall(data)
+                    data = request_socket.recv(CHUNK_SIZE)
+                    print(data)
+                    if data == b'':
+                        print('FINISH RECV UPLOAD SONG TO RESEND TO MUSIC DATA')
+                        request_socket.close()
+                        break
+
+            print(f'REQUEST FINISH SEND UPLOAD SONG TO MUSIC DATA {self.music_data_address}')
+            s.close()
+    
+
     def print_node_info(self):
         while True:
             print(f'\nAddress: {self.address}\
@@ -190,7 +249,7 @@ class RequestNode:
                     \nMusic Data Node List: {self.music_data_list}\
                     \nRequests Node list: {self.requests_list}')
             time.sleep(10)  
-            
+
 def main(address, r_address, md_address):
     host_ip, host_port = address.split(':')
     try:
@@ -214,8 +273,8 @@ def main(address, r_address, md_address):
         request_list_thread = threading.Thread(target=node.update_requests_list)
         request_list_thread.start()
         
-        print_thread = threading.Thread(target = node.print_node_info)
-        print_thread.start()
+        # print_thread = threading.Thread(target = node.print_node_info)
+        # print_thread.start()
     
     else:
         print(f'Error: Could not connect to the network, no music data node with address: {md_address}')
