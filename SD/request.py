@@ -51,7 +51,11 @@ class RequestNode:
                 return False
         return True
     
+
+    # ! VERIFICAR TODOS LOS MUSIC DATA
+    
     def request_response(self, music_name):
+        result = []
         for md_add in self.music_data_list:
             try:
                 print(self.music_data_list)
@@ -60,10 +64,11 @@ class RequestNode:
                 song = music_node.get_music_by_name(music_name)
                 print(song)
                 if song is not None and song != []:
-                    return md_add, song
+                    result.append(md_add, song)
+                    # return md_add, song
             except:
                 continue
-        return []
+        return result
                 
         
     def play_song(self, md_add, music_name):

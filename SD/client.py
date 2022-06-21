@@ -38,13 +38,14 @@ class ClientNode:
                     break
             
                 responses_song = r_node.request_response(song_name)
+                print(responses_song)
                 count = 0
                 if responses_song:
-                    for s in responses_song[1]:
-                        print(f"{count}. {s}")
+                    for s in responses_song:
+                        print(f"{count}. {s[1]}")
                         count += 1
                     index = int(input("Enter song index: "))
-                    self.recv_music(responses_song[0],responses_song[1][index])
+                    self.recv_music(responses_song[index][0],responses_song[index][1])
             elif options == 1:
                 path_song = input("Enter path of song: ")
                 self.upload_song(path_song)
