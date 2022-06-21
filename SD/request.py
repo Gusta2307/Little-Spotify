@@ -55,7 +55,7 @@ class RequestNode:
     # ! VERIFICAR TODOS LOS MUSIC DATA
     
     def request_response(self, music_name):
-        result = []
+        result = dict()
         for md_add in self.music_data_list:
             try:
                 print(self.music_data_list)
@@ -64,30 +64,42 @@ class RequestNode:
                 song = music_node.get_music_by_name(music_name)
                 print(song)
                 if song is not None and song != []:
-                    result.append(md_add, song)
-                    # return md_add, song
+                    for s in song:
+                        if s in result.keys():
+                            result[s].append(md_add)  
+                        else:
+                            result[s] = [md_add]
+                    
+                    #return md_add, song
             except:
                 continue
         return result
                 
         
     def play_song(self, md_add, music_name):
-        music_node = get_music_data_instance(md_add)
+        for md in md_add:
+            try: 
+                
+                music_node = get_music_data_instance(md)
 
-        port = music_node.send_music_data(music_name)
+                port = music_node.send_music_data(music_name)
 
-        server_socket = socket.socket()
-        c_host_ip, _ = self.address.split(':')
-        server_socket.bind((self.address.split(':')[0], 0))
-        print('server client listening at',(c_host_ip, server_socket.getsockname()[1]))
+                server_socket = socket.socket()
+                c_host_ip, _ = self.address.split(':')
+                server_socket.bind((self.address.split(':')[0], 0))
+                print('server client listening at',(c_host_ip, server_socket.getsockname()[1]))
 
-        t2 = threading.Thread(target=self._recv_song_frames, args=([md_add, port, server_socket, music_node, music_name]))
-        t3 = threading.Thread(target=music_node.replicate_song, args=([music_name]))
+                t2 = threading.Thread(target=self._recv_song_frames, args=([md, port, server_socket, music_node, music_name]))
+                t3 = threading.Thread(target=music_node.replicate_song, args=([music_name]))
 
-        t2.start()
-        t3.start()
+                t2.start()
+                t3.start()
+
+                return server_socket.getsockname()[1]
+            except:
+                continue
         
-        return server_socket.getsockname()[1]
+        raise Exception("ERROR: Can't connect with any music data")
 
 
     def _recv_song_frames(self, md_add, port, server_socket, music_node, music_name):
