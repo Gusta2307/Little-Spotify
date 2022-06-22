@@ -1,28 +1,33 @@
 import pandas as pd
 from colorama import Fore, Style
-from process_datas import  get_X_y, scaler_data, encode_names, create_data
-from classifier import naive_bayes, id3, svm, Keras, knn
-from sklearn.model_selection import train_test_split
+from classifier import Naive_Bayer, ID3, KNN, SVM, Keras
+from process_datas import  create_dataset, get_X_y, scaler_data, encode_names
 
 
 
 if __name__ == '__main__':
-    # path = '/home/gustavo/Downloads/archive/Data/genres_original'
-    # create_data(path, 'dataset GTZA')
+    # path = input()
+    # create_data(path, 'dataset')
  
-    data = pd.read_csv('GTZAN.csv')    
-    X, y = get_X_y(data)
+    data = pd.read_csv('dataset-genres15.csv')
+    X, y, groups = get_X_y(data)
     X = scaler_data(X)
     y = encode_names(y)
 
-    # keras = Keras()
-    X_train, X_test, y_train , y_test = train_test_split(X, y, train_size=0.8)
+    Xdf = pd.DataFrame(X)
+    ydf = pd.DataFrame(y)
+    
+    keras = Keras()
+    nb_score, nb_partition, nb_mean = Naive_Bayer(Xdf, ydf, groups)
+    id3_score, id3_partition, id3_mean = ID3(Xdf, ydf, groups)
+    knn_score, knn_partition, knn_mean = KNN(Xdf, ydf, groups)
+    svm_score, svm_partition, svm_mean = SVM(Xdf, ydf, groups)
+    keras_score, keras_partition, keras_mean, history = keras.evaluate(Xdf, ydf, groups)
 
-    print("Resultados:")
-    # test_acc, test_loss = keras.evaluate(X_train, X_test, y_train , y_test)
-    # print(f"{Fore.GREEN} Keras: accuracy={test_acc} loss={test_loss} {Style.RESET_ALL} epoch={20}")
-    print(f"{Fore.GREEN} Naive Bayer: {naive_bayes(X_train, X_test, y_train , y_test)} {Style.RESET_ALL}")
-    print(f"{Fore.GREEN} ID3: {id3(X_train, X_test, y_train , y_test)} {Style.RESET_ALL}")
-    print(f"{Fore.GREEN} KNN: {knn(X_train, X_test, y_train , y_test)} {Style.RESET_ALL}")
-    print(f"{Fore.GREEN} SVM: {svm(X_train, X_test, y_train , y_test)} {Style.RESET_ALL}")
+    print("Resultados de los modelos")
+    print(f"{Fore.GREEN} Naive Bayer: best_score={nb_score} mean={nb_mean} {Style.RESET_ALL}")
+    print(f"{Fore.GREEN} ID3: best_score={id3_score} mean={id3_mean} {Style.RESET_ALL}")
+    print(f"{Fore.GREEN} KNN: best_score={knn_score} mean={knn_mean} {Style.RESET_ALL}")
+    print(f"{Fore.GREEN} SVM: best_score={svm_score} mean={svm_mean} {Style.RESET_ALL}")
+    print(f"{Fore.GREEN} Keras: best_score={keras_score} mean={keras_mean} {Style.RESET_ALL}")
     print("")
