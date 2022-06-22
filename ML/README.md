@@ -1,0 +1,213 @@
+# Reporte del Proyecto
+
+## Primera Idea : ID3 y Naive Bayes
+
+La primera idea que tuvimos para darle solución al problema fue usar Naive Bayes o Árboles de decisión con las extracción de las siguientes caracteristicas en solo los primeros 30 segundos de las canciones en formato mp3:
+
+- **Chroma Feature**: Es una poderosa herramienta para analizar características musicales cuyos tonos se pueden categorizar significativamente y cuya afinación se aproxima a la escala de temperamento igual.
+- **Spectral Bandwidth**: Calcule el ancho de banda espectral de orden p.
+- **RMS**: Calcula root-mean-square (RMS) para cada frame, ya sea de las muestras de audio o de un espectrograma.
+- **Spectral Centroid**: El centroide espectral indica dónde se encuentra el "centroide" del sonido y se calcula de acuerdo con el promedio ponderado de la frecuencia del sonido
+- **Rolloff espectral**: La derivación espectral (Spectral Rolloff) es una medida de la forma de la señal, que representa la frecuencia en un porcentaje específico de la energía espectral (como el 85%).
+- **Zero crossing** rate (Taza de Cruce Cero): La velocidad de cruce por cero es la velocidad a la que cambia un signo de señal, es decir, el número de veces que una señal de voz cambia de positivo a negativo o de negativo a positivo en cada cuadro.
+- **Mel-Frequency Cepstral Coefficients (MFCCs)**:  El coeficiente cepstral de frecuencia de mel (MFCC) de una señal es un conjunto generalmente compuesto de 10-20 características, que pueden describir de manera concisa la forma general  de la envoltura del espectro y modelar las características del habla.
+- **dbfs**: Significa "decibelios a escala completa". Es una abreviatura utilizada para definir los niveles de amplitud en decibelios en sistemas digitales en base al máximo nivel disponible. Actualmente el término "dBFS" se utiliza con referencia a la definición del estándar AES-17.
+
+### Efectividad obtenida en promedio
+
+|Algoritmo  |Valor Obtenido|
+|-----------|:------------:|
+|Naive Bayes|0.356      |
+|ID3        |0.347      |
+
+## Refinando las ideas que se tienen hasta el momento
+
+Se decidió comprobar si el intervalo de tiempo que se toma de la canción para la extracción de sus características afecta notablemente la efectividad de los algoritmos, para ello se realizaron varias corridas tomando 90 segundos y toda la canción.
+
+Al mismo tiempo, por contenido dado en clases, aprendimos que es buena idea escalar los datos para normalizarlos.
+
+Además luego de realizar una búsqueda nos percatamos que para el trabajo con canciones y especifícamente para la extración de sus características se utiliza con frecuencia el formato .wav pues este no presenta compresión de sonido. Para la conversión de las canciones de formato .mp3 a .wav utilizamos la librería de python `pydub`, específicamente la función `AudioSegment`.
+
+Con todo esto se probó las ideas que se tenían hasta el momento y estos fueron los resultados.
+
+### Efectividad obtenida en promedio
+
+|Algoritmo  |90 s | Completa|
+|-----------|:---:|:-------:|
+|Naive Bayes|0.52 | 0.52|
+|ID3        |0.55 | 0.58|
+
+Por estos resultados es preferible analizar la canción en su totalidad.
+
+## Segunda Idea : Keras
+
+Pensamos en utilizar este algoritmo antes de verlo en conferencias por lo que no definimos los parámetros de la forma más correcta para el problema en cuestión, los primeros valores que se utilizaron fueron:
+
+- epoch: 100
+- capa inicial: 256
+- capa oculta1: 128
+- capa oculta2: 64
+- capa salida (softmax): 5
+
+El valor de la capa de salida si es correcta pues el dataset contiene solo 5 géneros musicales.
+
+Los valores de la capa inicial y epoch no son los más adecuados para nuestro problema:
+
+- Para la capa inicial lo mejor es escoger la potencia de 2 mayor que la cantidad de datos que se tienen, como tenemos un dataset de 492 canciones este valor sería 512.
+
+- Por otro lado al tener un valor para epoch tan elevado, sucede que la red neuronal se aprende el conjunto de datos de memoria, específicamente en nuestro caso era a partir de la etapa 30.
+
+Durante el entrenamiento, el modelo entrenará solo en el conjunto de entrenamiento y validará evaluando los datos en el conjunto de validación. Por lo que el modelo está aprendiendo las características de los datos en el conjunto de entrenamiento, tomando lo que aprendió de estos datos y luego prediciendo en el conjunto de validación. Durante cada época, se podrá observar no solo los resultados de pérdida y precisión para el conjunto de entrenamiento, sino también para el conjunto de validación.
+
+Se probó tomando validation_split=0.2 y validation_split=0.1, estos son los resultados:
+
+|Validacion  |Resultado |
+|----------- |:---:|
+|0.2|0.75 |
+|0.1|0.78 |
+
+En este punto podemos dar por desechada la primera idea pues el porciento de efectividad con el algoritmo de keras es mucho más alto que los alcanzaddo por ID3 y Naive Bayes.  
+
+## Tercera idea: KNN
+
+Se encontró un artículo donde, para darle solución a un problema muy similar al que se presenta, utilizaban KNN por lo que decidimos probar esta vía para comparar los resultados con los que teníamos hasta al momento.
+
+Se toma `n_neighbors=5`, igual que la solución de la que se habla anteriormente y `weights='distance'` pues los puntos que esten más cercanos al que se quiere clasificar tendrán mayor influencia sobre el veredicto de a qué género pertenece. Luego por esta vía obtenemos un 0.75 de efectividad en promedio.
+
+## Cuarta idea: SVC
+
+Ya para agotar todas las las vías posibles para resolver el problema se probó SVC con el que se obtuvo un 0.74 de efectividad.
+
+Se tomó para los parámetros los siguientes valores:
+
+- `decision_function_shape='ovo'` : Para poder usar eel algoritmo de vector de soporte para n clases pues por defecto solo se utiliza para valores binarios.
+
+- `kernel = 'rbf'`: Para especificar el tipo del kernel que utilizará el algoritmo, se utiliza 'rbf' pues los datos no son linealmente separables.
+
+- `class_weight='balanced'`: Este modo utiliza los valores de Y para ajustar automáticamente los pesos inversamente proporcionales a las frecuencias de clase en los datos de entrada como .n_samples / (n_classes * np.bincount(y)).
+
+Luego se obtienen mejores resultados con: Keras, KNN y SVC. Ahora analicemos a más detalle estos resultados.
+
+## Análisis de las curvas de aprendizajes
+
+![Curva de aprendizaje de Naive Bayes](img/lc_default_NB.png)|![Curva de aprendizaje de ID3](img/lc_default_ID3.png)
+![Curva de aprendizaje de Keras](img/lc_default_Keras.png)|![Curva de aprendizaje de KNN](img/lc_default_KNN.png)
+![Curva de aprendizaje de SVC](img/lc_default_SVC.png)
+
+Como podemos notar en las imágenes anteriores los algoritmos están realizando Overfitting y hay falta de datos.
+
+En este punto de la investigación nos dimos cuenta que el conjunto de datos que estábamos utilizando para entrenar y evaluar los algoritmos está lejos de ser correcto pues tenía canciones que no estaban bien clasificadas según el género al que realmente pertenecen y contenía datos repetidos, lo cual puede ser la razón por la que los algoritmos estaban realizando Overfitting.
+
+Dicho lo anterior, no tiene sentido seguir analizando los resultados de los algoritmos propuestos pues los datos que utilizan no son fiables.
+
+## Nuevo conjunto de datos
+
+GTZAN+ es una base de datos musical compuesta por 15 géneros musicales. Es una extensión de la base de datos GTZAN aumentada por los siguientes 5 géneros musicales afro: Bikutsi , Makossa , Bamileké , Salsa y Zouk . Cada género en GTZAN+ está representado por 100 archivos ".wav" de 30 segundos cada uno. La base de datos GTZAN original se ha utilizado en varias investigaciones que se han realizado relacionadas con la clasificación de canciones según su género, por lo que parece prudente y confiable utilizarla para comprobar la efectividad de nuestros algoritmos.
+
+Luego los resultados que se tiene con GTZAN+ son:
+
+|Algoritmo  |Resultado |
+|-----------|:---:|
+Naive Bayes| 0.5125 |
+ID3| 0.5055|
+KNN| 0.6805 |
+SVM |0.701|
+Keras|0.7125|
+
+En este punto podemos decir que los mejores resultados son los dados por KNN, SVM y Keras. Veamos como se comportan las curvas de aprendizaje.
+
+## Análisis de las nuevas curvas de aprendiaje
+
+![Curva de aprendizaje de Naive Bayes con GTZA+](img/lc_gtzan+_NB.png) |![Curva de aprendizaje de ID3 con GTZA+](img/lc_gtzan+_ID3.png)
+![Curva de aprendizaje de Keras con GTZA+](img/lc_gtzan+_Keras.png)|![Curva de aprendizaje de KNN con GTZA+](img/lc_gtzan+_KNN.png)
+![Curva de aprendizaje de SVC con GTZA+](img/lc_gtzan+_SVC.png)
+
+Como nos podemos percatar seguimos teniendo el mismo problema de overfiting que teníamos con el dataset original por lo que dejando a un lado las incongruencias en el dataset anterior los algoritmos no estan funcionando como se esperaría.
+
+## Intento reducir el overfiting
+
+Para combatir el overfiting dos de las maneras más comunes son: simplificar las dimensiones del modelo y utilizar la validación cruzada para estimar el rendimiento de los modelos, ya que este se utiliza para proteger contra el overfit en un modelo, particularmente en un caso donde la cantidad de datos puede ser limitada, el cual es precisamente nuestro caso.
+
+### Reducción de dimensiones
+
+Verificamos la matriz de correlación para determinar que variables están altamente correlacionadas. Luego si dos variables están correlacionadas, se puede usar solo una de ella para el análisis.
+
+![Matriz de correlación de las características de GTZAN+ ](img/dataset_corr_original.png)
+
+Al observar la matriz podemos percatarnos que existen variables que se pueden eliminar, estas son: rollof, spectral_centroid, spectral_bandwidth, mfcc1, mfcc2, mfcc8 y mfcc10. Luego la matriz de correlación queda:
+
+![Matriz de correlación de las características de GTZAN+ ](img/dataset_corr_final.png)
+
+Veamos cómo influyó este cambio en la efectividad y las curvas de aprendizaje de los algoritmos:
+
+|Algoritmo  |Resultado |
+|-----------|:---:|
+Naive Bayes |0.52 |
+ID3 | 0.44 |
+KNN| 0.66 |
+SVM |0.69|
+Keras| 0.66|
+
+#### Curvas de aprendizajes
+
+![Curva de aprendizaje de Naive Bayes con GTZA+ con corr](img/lc_corr_NB.png) |![Curva de aprendizaje de ID3 con GTZA+ con corr](img/lc_corr_ID3.png)
+![Curva de aprendizaje de Keras con GTZA+ con corr](img/lc_corr_Keras.png)|![Curva de aprendizaje de KNN con GTZA+ con corr](img/lc_corr_KNN.png)
+![Curva de aprendizaje de SVC con GTZA+ con corr](img/lc_corr_SVC.png)
+
+Como podemos observar que en las curvas de aprendizaje hubo una pequeña mejoría pero la efectividad de los algoritmo disminuyó radicalmente. Veamos si la otra opción para proteger los algoritmos de overfiting nos ayuda más.
+
+### Utilizando Cross Validation
+
+Decidimos utilizar como método de validación cruzada Stratified Group KFold. Veamos si afecta positivamente los algoritmos:
+
+#### Efectividad en promedio
+
+|Algoritmo  |Resultado |
+|-----------|:---:|
+Naive Bayes| 0.45|
+ID3 |0.49|
+KNN |0.69|
+SVM |0.68|
+Keras| 0.68 |
+
+#### Curvas de Aprendizajes
+
+![Curva de aprendizaje de Naive Bayes con GTZA+ con kfold](img/lc_kfold_NB.png) |![Curva de aprendizaje de ID3 con GTZA+ con kfold](img/lc_kfold_ID3.png)
+![Curva de aprendizaje de Keras con GTZA+ con kfold](img/lc_kfold_Keras.png)|![Curva de aprendizaje de KNN con GTZA+ con kfold](img/lc_kfold_KNN.png)
+![Curva de aprendizaje de SVC con GTZA+ con kfold](img/lc_kfold_SVC.png)
+
+
+### Añadiendo Dropout a Keras
+
+La capa Dropout establece aleatoriamente las unidades de entrada en 0 con una frecuencia de `rate` en cada paso durante el tiempo de entrenamiento, lo que ayuda a evitar el sobreajuste. Las entradas que no se establecen en 0 se escalan en 1/(1 - tasa) de modo que la suma de todas las entradas no cambia.
+
+Definimos el parámetro `rate` con 0.5, pues si el valor es muy pequeño entonces se mantiene el overfit y si por el contrario es un valor muy alto entonces dismuye la efectividad y realiza Underfit.
+
+Con esta modificación al algoritmo obtenemos un porciento de efectividad de 0.65 en promedio y la curva de aprendizaje se comporta de la siguiente manera:
+
+![Curva de aprendizaje de Keras con GTZA+ con dropout](img/Keras-Droupout.png)|![Curva de aprendizaje de Keras con GTZA+ con dropout](img/Keras-Droupout-loss.png)
+
+### Añadiendo L2 a Keras
+
+FALTA INFORMACIONNNNNNNNNNNNNNNNNNNNN
+
+Efectividad 0.56
+
+![Curva de aprendizaje de Keras con GTZA+ con dropout y L2](img/Keras-Droupout-L2.png)|![Curva de aprendizaje de Keras con GTZA+ con dropout y L2](img/Keras-Droupout-L2-loss.png)
+
+## Bibliografía
+
+- [Procesando audio con Python](https://programmerclick.com/article/4979571746/)
+
+- [Clasificar géneros de canciones a partir de datos de audio con Python](https://gusintasusilowati.medium.com/classify-song-genres-from-audio-data-4d5f9982c9e)
+
+- [Conozca la extracción de funciones de audio en Python](https://towardsdatascience.com/get-to-know-audio-feature-extraction-in-python-a499fdaefe42)
+
+- [Clasificación de géneros musicales usando CNN (Convolutional Neural Networks)](https://www.clairvoyant.ai/blog/music-genre-classification-using-cnn)
+
+- [Documentación de sklearn.svm](https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html)
+
+- [Cómo seleccionar núcleos de máquinas de vectores de soporte](https://www-kdnuggets-com.translate.goog/2016/06/select-support-vector-machine-kernels.html?_x_tr_sl=en&_x_tr_tl=es&_x_tr_hl=es&_x_tr_pto=sc)
+
+- [Conjunto de datos GTZAN+](https://perso-etis.ensea.fr/sylvain.iloga/GTZAN+/)
+

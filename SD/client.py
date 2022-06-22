@@ -38,25 +38,26 @@ class ClientNode:
                     break
             
                 responses_song = r_node.request_response(song_name)
+                print(responses_song)
                 count = 0
                 if responses_song:
-                    for s in responses_song[1]:
+                    for s in responses_song.keys():
                         print(f"{count}. {s}")
                         count += 1
                     index = int(input("Enter song index: "))
-                    self.recv_music(responses_song[0],responses_song[1][index])
+                    self.recv_music(responses_song[list(responses_song.keys())[index]], list(responses_song.keys())[index])
             elif options == 1:
                 path_song = input("Enter path of song: ")
                 self.upload_song(path_song)
             
         
-    def recv_music(self, md_add, music_index):
+    def recv_music(self, md_add, music_name):
         # try:
             r_node = get_request_node_instance(self.request_node_address)
             if r_node is None:
                 print(f"ERROR: Missing connection to server {self.request_node_address}")
                 return
-            port = r_node.play_song(md_add, music_index)
+            port = r_node.play_song(md_add, music_name)
             # t1 = threading.Thread(target=r_node.play_song, args=([self.address, music_index]))
             # t1.setName("play song")
             # t1.start()
