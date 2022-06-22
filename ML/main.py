@@ -10,6 +10,7 @@ if __name__ == '__main__':
     # create_data(path, 'dataset')
  
     data = pd.read_csv('dataset-genres15.csv')
+    
     X, y, groups = get_X_y(data)
     X = scaler_data(X)
     y = encode_names(y)

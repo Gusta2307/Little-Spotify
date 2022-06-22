@@ -151,11 +151,11 @@ class Keras:
     
     def classification(self, X_train, X_test, y_train , y_test, epochs=20, validation=0.2, rate=0.5, batch=128):
         model = Sequential()
-        model.add(layers.Dense(1600, activation='relu', input_shape=(X_train.shape[1],)))
+        model.add(layers.Dense(1600, activation='relu', kernel_regularizer='l2', input_shape=(X_train.shape[1],)))
         model.add(layers.Dropout(rate=rate))
-        model.add(layers.Dense(800, activation='relu'))
+        model.add(layers.Dense(800, activation='relu', kernel_regularizer='l2'))
         model.add(layers.Dropout(rate=rate))
-        model.add(layers.Dense(400, activation='relu'))
+        model.add(layers.Dense(400, activation='relu', kernel_regularizer='l2'))
         model.add(layers.Dropout(rate=rate))
         model.add(layers.Dense(15, activation='softmax'))
         model.summary()
