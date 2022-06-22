@@ -7,9 +7,10 @@ from process_datas import  create_dataset, get_X_y, scaler_data, encode_names
 
 if __name__ == '__main__':
     # path = input()
-    # create_data(path, 'dataset')
+    # dataset_name = input()
+    # create_data(path, dataset_name)
  
-    data = pd.read_csv('dataset-genres15.csv')
+    data = pd.read_csv('data-15 genres-final.csv')
     
     X, y, groups = get_X_y(data)
     X = scaler_data(X)
