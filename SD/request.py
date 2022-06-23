@@ -190,7 +190,8 @@ class RequestNode:
                 server_socket.close()
                 client_socket.close()
                 break
-
+        server_socket.close()
+        client_socket.close()
         print('Audio closed')
 
     def update_music_data_list(self):

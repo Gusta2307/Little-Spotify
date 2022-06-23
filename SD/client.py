@@ -91,8 +91,9 @@ class ClientNode:
             is_done = False
             escuchador = kb.Listener(self.stopped)
             escuchador.start()
+            end_recv = False
             while True:
-                while not self.is_paused:
+                # while not self.is_paused:
                     try:
                         try:
                             r_node.ping()
@@ -111,7 +112,8 @@ class ClientNode:
                         while len(data) < payload_size:
                             packet = client_socket.recv(4*1024) # 4K
                             current_duration += CHUNK/44100
-                            if not packet: break
+                            if not packet: 
+                                break
                             data+=packet
 
 
@@ -119,28 +121,34 @@ class ClientNode:
                         data = data[payload_size:]
                         msg_size = struct.unpack("Q",packed_msg_size)[0]
                         
-                        while len(data) < msg_size:
+                        while len(data) < msg_size and not end_recv:
                             data += client_socket.recv(4*1024)
                             current_duration += CHUNK/44100
+                            if data == b'':
+                                end_recv = True
+                                break
 
-                        frame_data = data[:msg_size]
-                        data  = data[msg_size:]
-                        frame = pickle.loads(frame_data)
-                        stream.write(frame)
-        
-                        if not len(data) < msg_size:
-                            print('break')
-                            is_done = True
-                            break
-
+                        if not self.is_paused:
+                            frame_data = data[:msg_size]
+                            data  = data[msg_size:]
+                            frame = pickle.loads(frame_data)
+                            stream.write(frame)
+            
+                            if not len(data) < msg_size:
+                                print('break')
+                                is_done = True
+                                break
+                        
+                        if self.is_paused and end_recv:
+                            time.sleep(3)
                     except Exception as e:
                         is_done = True
                         client_socket.close()
                         print(f"Break {e}")
                         break
-                if is_done:
-                    break
-                time.sleep(3)
+                # if is_done:
+                #     break
+                # time.sleep(3)
                     
             client_socket.close()
             print('Audio closed')
