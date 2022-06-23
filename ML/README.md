@@ -15,10 +15,10 @@ La primera idea que tuvimos para darle solución al problema fue usar Naive Baye
 
 ### Efectividad obtenida en promedio
 
-|Algoritmo  |Valor Obtenido|
-|-----------|:------------:|
-|Naive Bayes|0.356      |
-|ID3        |0.347      |
+| Algoritmo   | Valor Obtenido |
+| ----------- | :------------: |
+| Naive Bayes |     0.356     |
+| ID3         |     0.347     |
 
 ## Refinando las ideas que se tienen hasta el momento
 
@@ -32,10 +32,10 @@ Con todo esto se probó las ideas que se tenían hasta el momento y estos fueron
 
 ### Efectividad obtenida en promedio
 
-|Algoritmo  |90 s | Completa|
-|-----------|:---:|:-------:|
-|Naive Bayes|0.52 | 0.52|
-|ID3        |0.55 | 0.58|
+| Algoritmo   | 90 s | Completa |
+| ----------- | :--: | :------: |
+| Naive Bayes | 0.52 |   0.52   |
+| ID3         | 0.55 |   0.58   |
 
 Por estos resultados es preferible analizar la canción en su totalidad.
 
@@ -54,19 +54,18 @@ El valor de la capa de salida si es correcta pues el dataset contiene solo 5 gé
 Los valores de la capa inicial y epoch no son los más adecuados para nuestro problema:
 
 - Para la capa inicial lo mejor es escoger la potencia de 2 mayor que la cantidad de datos que se tienen, como tenemos un dataset de 492 canciones este valor sería 512.
-
 - Por otro lado al tener un valor para epoch tan elevado, sucede que la red neuronal se aprende el conjunto de datos de memoria, específicamente en nuestro caso era a partir de la etapa 30.
 
 Durante el entrenamiento, el modelo entrenará solo en el conjunto de entrenamiento y validará evaluando los datos en el conjunto de validación. Por lo que el modelo está aprendiendo las características de los datos en el conjunto de entrenamiento, tomando lo que aprendió de estos datos y luego prediciendo en el conjunto de validación. Durante cada época, se podrá observar no solo los resultados de pérdida y precisión para el conjunto de entrenamiento, sino también para el conjunto de validación.
 
-Se probó tomando validation_split=0.2 y validation_split=0.1, estos son los resultados:
+Se probó tomando `validation_split=0.2` y `validation_split=0.1`, estos son los resultados:
 
-|Validacion  |Resultado |
-|----------- |:---:|
-|0.2|0.75 |
-|0.1|0.78 |
+| Validacion | Resultado |
+| ---------- | :-------: |
+| 0.2        |   0.75   |
+| 0.1        |   0.78   |
 
-En este punto podemos dar por desechada la primera idea pues el porciento de efectividad con el algoritmo de keras es mucho más alto que los alcanzaddo por ID3 y Naive Bayes.  
+En este punto podemos dar por desechada la primera idea pues el porciento de efectividad con el algoritmo de keras es mucho más alto que los alcanzaddo por ID3 y Naive Bayes.
 
 ## Tercera idea: KNN
 
@@ -74,25 +73,27 @@ Se encontró un artículo donde, para darle solución a un problema muy similar 
 
 Se toma `n_neighbors=5`, igual que la solución de la que se habla anteriormente y `weights='distance'` pues los puntos que esten más cercanos al que se quiere clasificar tendrán mayor influencia sobre el veredicto de a qué género pertenece. Luego por esta vía obtenemos un 0.75 de efectividad en promedio.
 
-## Cuarta idea: SVC
+## Cuarta idea: SVM
 
-Ya para agotar todas las las vías posibles para resolver el problema se probó SVC con el que se obtuvo un 0.74 de efectividad.
+Ya para agotar todas las las vías posibles para resolver el problema se probó SVM con el que se obtuvo un 0.74 de efectividad.
 
 Se tomó para los parámetros los siguientes valores:
 
 - `decision_function_shape='ovo'` : Para poder usar eel algoritmo de vector de soporte para n clases pues por defecto solo se utiliza para valores binarios.
-
 - `kernel = 'rbf'`: Para especificar el tipo del kernel que utilizará el algoritmo, se utiliza 'rbf' pues los datos no son linealmente separables.
-
 - `class_weight='balanced'`: Este modo utiliza los valores de Y para ajustar automáticamente los pesos inversamente proporcionales a las frecuencias de clase en los datos de entrada como .n_samples / (n_classes * np.bincount(y)).
 
-Luego se obtienen mejores resultados con: Keras, KNN y SVC. Ahora analicemos a más detalle estos resultados.
+Luego se obtienen mejores resultados con: Keras, KNN y SVM. Ahora analicemos a más detalle estos resultados.
 
 ## Análisis de las curvas de aprendizajes
 
-![Curva de aprendizaje de Naive Bayes](img/lc_default_NB.png)|![Curva de aprendizaje de ID3](img/lc_default_ID3.png)
-![Curva de aprendizaje de Keras](img/lc_default_Keras.png)|![Curva de aprendizaje de KNN](img/lc_default_KNN.png)
-![Curva de aprendizaje de SVC](img/lc_default_SVC.png)
+<p float="left">
+    <img src="img/lc_default_NB.png" width="300"/>
+    <img src="img/lc_default_ID3.png" width="300"/>
+    <img src="img/lc_default_KNN.png" width="300"/>
+    <img src="img/lc_default_SVC.png" width="300"/>
+    <img src="img/lc_default_Keras.jpg" width="300"/>
+</p>
 
 Como podemos notar en las imágenes anteriores los algoritmos están realizando Overfitting y hay falta de datos.
 
@@ -106,21 +107,25 @@ GTZAN+ es una base de datos musical compuesta por 15 géneros musicales. Es una 
 
 Luego los resultados que se tiene con GTZAN+ son:
 
-|Algoritmo  |Resultado |
-|-----------|:---:|
-Naive Bayes| 0.5125 |
-ID3| 0.5055|
-KNN| 0.6805 |
-SVM |0.701|
-Keras|0.7125|
+| Algoritmo   | Resultado |
+| ----------- | :-------: |
+| Naive Bayes |  0.5125  |
+| ID3         |  0.5055  |
+| KNN         |  0.6805  |
+| SVM         |  0.701   |
+| Keras       |  0.7125  |
 
 En este punto podemos decir que los mejores resultados son los dados por KNN, SVM y Keras. Veamos como se comportan las curvas de aprendizaje.
 
 ## Análisis de las nuevas curvas de aprendiaje
 
-![Curva de aprendizaje de Naive Bayes con GTZA+](img/lc_gtzan+_NB.png) |![Curva de aprendizaje de ID3 con GTZA+](img/lc_gtzan+_ID3.png)
-![Curva de aprendizaje de Keras con GTZA+](img/lc_gtzan+_Keras.png)|![Curva de aprendizaje de KNN con GTZA+](img/lc_gtzan+_KNN.png)
-![Curva de aprendizaje de SVC con GTZA+](img/lc_gtzan+_SVC.png)
+<p float="left">
+    <img src="img/lc_gtzan+_NB.png" width="300"/>
+    <img src="img/lc_gtzan+_ID3.png" width="300"/>
+    <img src="img/lc_gtzan+_KNN.png" width="300"/>
+    <img src="img/lc_gtzan+_SVC.png" width="300"/>
+    <img src="img/lc_gtzan+_Keras.png" width="300"/>
+</p> 
 
 Como nos podemos percatar seguimos teniendo el mismo problema de overfiting que teníamos con el dataset original por lo que dejando a un lado las incongruencias en el dataset anterior los algoritmos no estan funcionando como se esperaría.
 
@@ -140,21 +145,25 @@ Al observar la matriz podemos percatarnos que existen variables que se pueden el
 
 Veamos cómo influyó este cambio en la efectividad y las curvas de aprendizaje de los algoritmos:
 
-|Algoritmo  |Resultado |
-|-----------|:---:|
-Naive Bayes |0.52 |
-ID3 | 0.44 |
-KNN| 0.66 |
-SVM |0.69|
-Keras| 0.66|
+| Algoritmo   | Resultado |
+| ----------- | :-------: |
+| Naive Bayes |   0.52   |
+| ID3         |   0.44   |
+| KNN         |   0.66   |
+| SVM         |   0.69   |
+| Keras       |   0.66   |
 
 #### Curvas de aprendizajes
 
-![Curva de aprendizaje de Naive Bayes con GTZA+ con corr](img/lc_corr_NB.png) |![Curva de aprendizaje de ID3 con GTZA+ con corr](img/lc_corr_ID3.png)
-![Curva de aprendizaje de Keras con GTZA+ con corr](img/lc_corr_Keras.png)|![Curva de aprendizaje de KNN con GTZA+ con corr](img/lc_corr_KNN.png)
-![Curva de aprendizaje de SVC con GTZA+ con corr](img/lc_corr_SVC.png)
+<p float="left">
+    <img src="img/lc_corr_NB.png" width="300"/>
+    <img src="img/lc_corr_ID3.png" width="300"/>
+    <img src="img/lc_corr_KNN.png" width="300"/>
+    <img src="img/lc_corr_SVM.png" width="300"/>
+    <img src="img/lc_corr_Keras.png" width="300"/>
+</p> 
 
-Como podemos observar que en las curvas de aprendizaje hubo una pequeña mejoría pero la efectividad de los algoritmo disminuyó radicalmente. Veamos si la otra opción para proteger los algoritmos de overfiting nos ayuda más.
+Como podemos observar que en las curvas de aprendizaje hubo una pequeña mejoría pero la efectividad de los algoritmo disminuyó un poco. Veamos si la otra opción para proteger los algoritmos de overfiting nos ayuda más.
 
 ### Utilizando Cross Validation
 
@@ -162,20 +171,25 @@ Decidimos utilizar como método de validación cruzada Stratified Group KFold. V
 
 #### Efectividad en promedio
 
-|Algoritmo  |Resultado |
-|-----------|:---:|
-Naive Bayes| 0.45|
-ID3 |0.49|
-KNN |0.69|
-SVM |0.68|
-Keras| 0.68 |
+| Algoritmo   | Resultado |
+| ----------- | :-------: |
+| Naive Bayes |   0.45   |
+| ID3         |   0.49   |
+| KNN         |   0.69   |
+| SVM         |   0.68   |
+| Keras       |   0.68   |
 
 #### Curvas de Aprendizajes
 
-![Curva de aprendizaje de Naive Bayes con GTZA+ con kfold](img/lc_kfold_NB.png) |![Curva de aprendizaje de ID3 con GTZA+ con kfold](img/lc_kfold_ID3.png)
-![Curva de aprendizaje de Keras con GTZA+ con kfold](img/lc_kfold_Keras.png)|![Curva de aprendizaje de KNN con GTZA+ con kfold](img/lc_kfold_KNN.png)
-![Curva de aprendizaje de SVC con GTZA+ con kfold](img/lc_kfold_SVC.png)
+<p float="left">
+    <img src="img/lc_kfold_NB.png" width="300"/>
+    <img src="img/lc_kfold_ID3.png" width="300"/>
+    <img src="img/lc_kfold_KNN.png" width="300"/>
+    <img src="img/lc_kfold_SVC.png" width="300"/>
+    <img src="img/lc_kfold_Keras.png" width="300"/>
+</p> 
 
+Las curvas de aprendizajes se quedaron prácticamente igual pero la efectividad aumentó un poco por lo podemos decir que es beneficioso de alguna manera.
 
 ### Añadiendo Dropout a Keras
 
@@ -189,25 +203,57 @@ Con esta modificación al algoritmo obtenemos un porciento de efectividad de 0.6
 
 ### Añadiendo L2 a Keras
 
-FALTA INFORMACIONNNNNNNNNNNNNNNNNNNNN
+La idea detrás de este tipo de regularización es reducir el valor de los parámetros para que sean pequeños.
+Esta técnica introduce un término adicional de penalización en la función de coste original (L), añadiendo a su valor la suma de los cuadrados de los parámetros (ω).
 
-Efectividad 0.56
+batch_size: La normalización en lotes consiste básicamente en añadir un paso extra, habitualmente entre las neuronas y la función de activación, con la idea de normalizar las activaciones de salida. Nosotros utilizamos batch_size=128 y se obtuvo una efectividad 0.56.
 
 ![Curva de aprendizaje de Keras con GTZA+ con dropout y L2](img/Keras-Droupout-L2.png)|![Curva de aprendizaje de Keras con GTZA+ con dropout y L2](img/Keras-Droupout-L2-loss.png)
+
+Al ver que la efectividad disminuyó radicalmente y que la curva de aprendizaje empeoró decidimos descartar la utilización de L2.
+### Aumento de datos para audio mediante la inyección de ruido
+
+El aumento de datos ayuda a generar datos sintéticos a partir de un conjunto de datos existente, de modo que se pueda mejorar la capacidad de generalización del modelo por lo que puede ser beneficioso para los algoritmos que tenemos hasta el momento.
+
+Para generar datos sintácticos para audio, podemos aplicar inyección de ruido, cambio de tiempo, cambio de tono y velocidad. Modificar el tiempo, el tono y la velocidad no nos parece correcto porque esto cambios podrían influir en que la "nueva canción" cambie de género, por lo que decidimos probar la inyección de ruido.
+
+#### Efectividad promedio
+
+| Algoritmo   | Resultado |
+| ----------- | :-------: |
+| Naive Bayes |   0.27   |
+| ID3         |   0.32   |
+| KNN         |   0.42   |
+| SVM         |   0.41   |
+| Keras       |   0.39   |
+
+
+
+#### Curvas de Aprendizaje
+
+<p float="left">
+    <img src="img/lc_noise_NB.png" width="300"/>
+    <img src="img/lc_noise_ID3.png" width="300"/>
+    <img src="img/lc_noise_KNN.png" width="300"/>
+    <img src="img/lc_noise_SVC.png" width="300"/>
+    <img src="img/lc_noise_Keras.jpg" width="300"/>
+</p>
+
+Como podemos notar todos los algoritmos dan peores resultados por lo que puede ser, que la inyección de ruido traiga consigo la modificación de las características del audio a tal punto que el dato sintético no pertenezca al mismo género que el audio original.
+
+# Conclusiones
+
+Después de haber probado diferentes algoritmos con varias modificaciones podemos concluir los mejores resultados en cuanto a la efectividad son KNN, SVM y Keras con Dropout. Los 3 utilizando reducción de las dimensiones del modelo y cross-validation; pero, si verificamos las curvas de aprendizaje podemos notar que KNN realiza un Overfiting perfecto por lo que queda rotundamente descartado.
+
+Por otro lado, SVM no parece ser un mal algoritmo para clasificar canciones según el género, solo que creamos que necesita más datos, los cuales nos son difíciles de obtener; por lo que nos quedamos con Keras que tiene una efectividad de 0.65, que es muy similar a la de SVM pero la curva de aprendizaje se comporta mejor.
 
 ## Bibliografía
 
 - [Procesando audio con Python](https://programmerclick.com/article/4979571746/)
-
 - [Clasificar géneros de canciones a partir de datos de audio con Python](https://gusintasusilowati.medium.com/classify-song-genres-from-audio-data-4d5f9982c9e)
-
 - [Conozca la extracción de funciones de audio en Python](https://towardsdatascience.com/get-to-know-audio-feature-extraction-in-python-a499fdaefe42)
-
 - [Clasificación de géneros musicales usando CNN (Convolutional Neural Networks)](https://www.clairvoyant.ai/blog/music-genre-classification-using-cnn)
-
 - [Documentación de sklearn.svm](https://scikit-learn.org/stable/modules/generated/sklearn.svm.SVC.html)
-
 - [Cómo seleccionar núcleos de máquinas de vectores de soporte](https://www-kdnuggets-com.translate.goog/2016/06/select-support-vector-machine-kernels.html?_x_tr_sl=en&_x_tr_tl=es&_x_tr_hl=es&_x_tr_pto=sc)
-
 - [Conjunto de datos GTZAN+](https://perso-etis.ensea.fr/sylvain.iloga/GTZAN+/)
-
+- [Aumento de datos para audio](https://medium.com/@makcedward/data-augmentation-for-audio-76912b01fdf6)

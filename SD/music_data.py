@@ -157,7 +157,7 @@ class MusicDataNode:
                 while True:
                     try:
                         data = music_file[start*1000:end*1000]._data
-                        print(data) 
+                        #print(data) 
                         a = pickle.dumps(data)
                         message = struct.pack("Q",len(a))+a
                         client_socket.sendall(message)
