@@ -6,6 +6,7 @@ import threading
 import socket
 import struct
 import pickle
+from pynput import keyboard as kb
 import os
 from utils import (
     get_request_node_instance
@@ -23,6 +24,7 @@ class ClientNode:
         self.address = address
         self.request_node_address = r_address
         self._request_node_list = []
+        self.is_paused = False
     
     def run(self):
         r_node = None
@@ -89,49 +91,58 @@ class ClientNode:
             current_duration = 0
             time.sleep(3)
             print("Now Playing")
+            is_done = False
+            escuchador = kb.Listener(self.stopped)
+            escuchador.start()
             while True:
-                try:
+                while not self.is_paused:
                     try:
-                        r_node.ping()
-                    except:
-                        if self.connect_to_server():
-                            client_socket.close()
-                            client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                            r_node = get_request_node_instance(self.request_node_address)
-                            port = r_node.play_song(md_add, music_name, current_duration)
-                            client_socket.connect((self.request_node_address.split(':')[0], port)) 
-                        else:
-                            print("ERROR: Missing connection with server.")
-                            return
+                        try:
+                            r_node.ping()
+                        except:
+                            if self.connect_to_server():
+                                client_socket.close()
+                                client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                                r_node = get_request_node_instance(self.request_node_address)
+                                port = r_node.play_song(md_add, music_name, current_duration)
+                                client_socket.connect((self.request_node_address.split(':')[0], port)) 
+                            else:
+                                print("ERROR: Missing connection with server.")
+                                return
 
 
-                    while len(data) < payload_size:
-                        packet = client_socket.recv(4*1024) # 4K
-                        current_duration += CHUNK/44100
-                        if not packet: break
-                        data+=packet
+                        while len(data) < payload_size:
+                            packet = client_socket.recv(4*1024) # 4K
+                            current_duration += CHUNK/44100
+                            if not packet: break
+                            data+=packet
 
 
-                    packed_msg_size = data[:payload_size]
-                    data = data[payload_size:]
-                    msg_size = struct.unpack("Q",packed_msg_size)[0]
-                    
-                    while len(data) < msg_size:
-                        data += client_socket.recv(4*1024)
-                        current_duration += CHUNK/44100
-        
-                    frame_data = data[:msg_size]
-                    data  = data[msg_size:]
-                    frame = pickle.loads(frame_data)
-                    stream.write(frame)
-        
-                    if not len(data) < msg_size:
-                        print('break')
+                        packed_msg_size = data[:payload_size]
+                        data = data[payload_size:]
+                        msg_size = struct.unpack("Q",packed_msg_size)[0]
+                        
+                        while len(data) < msg_size:
+                            data += client_socket.recv(4*1024)
+                            current_duration += CHUNK/44100
+            
+                        frame_data = data[:msg_size]
+                        data  = data[msg_size:]
+                        frame = pickle.loads(frame_data)
+                        stream.write(frame)
+            
+                        if not len(data) < msg_size:
+                            print('break')
+                            is_done = True
+                            break
+                    except Exception as e:
+                        is_done = True
+                        client_socket.close()
+                        print(f"Break {e}")
                         break
-                except Exception as e:
-                    client_socket.close()
-                    print(f"Break {e}")
+                if is_done:
                     break
+                time.sleep(3)
                     
             client_socket.close()
             print('Audio closed')
@@ -143,6 +154,11 @@ class ClientNode:
             send_up_song.start()
         else:
             print("ERROR: Invalid path")
+
+    def stopped(self, tecla):
+        if str(tecla) == 'Key.space':
+            self.is_paused = not self.is_paused
+            print('Se ha pulsado la tecla ' + str(tecla))
 
     def send_upload_song(self, path):
         r_node = get_request_node_instance(self.request_node_address)
