@@ -11,6 +11,12 @@ from utils import (
     get_request_node_instance
 )
 
+TAG = {
+    0: "name",
+    1: "genre",
+    2: "artist"
+}
+
 @Pyro4.expose
 class ClientNode:
     def __init__(self, address, r_address) -> None:
@@ -33,19 +39,22 @@ class ClientNode:
             options = int(input("0. Play music.\n1. Upload music\n"))
 
             if options == 0:
-                song_name = input("Enter song name: ")
-                if song_name == '':
-                    break
-            
-                responses_song = r_node.request_response(song_name)
-                print(responses_song)
-                count = 0
-                if responses_song:
-                    for s in responses_song.keys():
-                        print(f"{count}. {s}")
-                        count += 1
-                    index = int(input("Enter song index: "))
-                    self.recv_music(responses_song[list(responses_song.keys())[index]], list(responses_song.keys())[index])
+                try:
+                    tag = TAG[int(input("Select search form\n0. Name\n1. Genre\n2. Artist\n"))]
+                    
+                    song_name = input(f"Enter {tag}: ")
+                
+                    responses_song = r_node.request_response(song_name, tag)
+                    print(responses_song)
+                    count = 0
+                    if responses_song:
+                        for s in responses_song.keys():
+                            print(f"{count}. {s}")
+                            count += 1
+                        index = int(input("Enter song index: "))
+                        self.recv_music(responses_song[list(responses_song.keys())[index]], list(responses_song.keys())[index])
+                except:
+                    print("Somenthig went wrong! :/")
             elif options == 1:
                 path_song = input("Enter path of song: ")
                 self.upload_song(path_song)
