@@ -155,6 +155,7 @@ class MusicDataNode:
                 return songs
             except Exception as e:
                 print(e)
+                break
                 # if not self.chord_successors_list:
                 #     print(f'Error: Could not connect with chord node {self.chord_id}')
                 #     break

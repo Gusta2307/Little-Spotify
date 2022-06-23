@@ -95,7 +95,7 @@ class ClientNode:
             escuchador = kb.Listener(self.stopped)
             escuchador.start()
             while True:
-                while not self.is_paused:
+                # while not self.is_paused:
                     try:
                         try:
                             r_node.ping()
@@ -125,24 +125,25 @@ class ClientNode:
                         while len(data) < msg_size:
                             data += client_socket.recv(4*1024)
                             current_duration += CHUNK/44100
+
+                        if not self.is_paused:
+                            frame_data = data[:msg_size]
+                            data  = data[msg_size:]
+                            frame = pickle.loads(frame_data)
+                            stream.write(frame)
             
-                        frame_data = data[:msg_size]
-                        data  = data[msg_size:]
-                        frame = pickle.loads(frame_data)
-                        stream.write(frame)
-            
-                        if not len(data) < msg_size:
-                            print('break')
-                            is_done = True
-                            break
+                            if not len(data) < msg_size:
+                                print('break')
+                                is_done = True
+                                break
                     except Exception as e:
                         is_done = True
                         client_socket.close()
                         print(f"Break {e}")
                         break
-                if is_done:
-                    break
-                time.sleep(3)
+                # if is_done:
+                #     break
+                # time.sleep(3)
                     
             client_socket.close()
             print('Audio closed')
