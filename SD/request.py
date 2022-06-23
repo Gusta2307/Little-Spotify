@@ -72,17 +72,18 @@ class RequestNode:
                     
                     #return md_add, song
             except:
+                print("GFGFGFGFGFGFGFGFGFGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG")
                 continue
         return result
                 
         
-    def play_song(self, md_add, music_name):
+    def play_song(self, md_add, music_name, duration=0):
         for md in md_add:
             try: 
                 
                 music_node = get_music_data_instance(md)
 
-                port = music_node.send_music_data(music_name)
+                port = music_node.send_music_data(music_name, duration)
 
                 server_socket = socket.socket()
                 c_host_ip, _ = self.address.split(':')
@@ -162,6 +163,7 @@ class RequestNode:
                 data  = data[msg_size:]
                 frame = pickle.loads(frame_data)
                 print(current_duration)
+                print(frame)
                 if frame == b'':
                     server_socket.close()
                     client_socket.close()

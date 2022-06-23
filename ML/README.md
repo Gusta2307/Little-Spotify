@@ -91,7 +91,7 @@ Luego se obtienen mejores resultados con: Keras, KNN y SVC. Ahora analicemos a m
 ## Análisis de las curvas de aprendizajes
 
 ![Curva de aprendizaje de Naive Bayes](img/lc_default_NB.png)|![Curva de aprendizaje de ID3](img/lc_default_ID3.png)
-![Curva de aprendizaje de Keras](img/lc_default_Keras.png)|![Curva de aprendizaje de KNN](img/lc_default_KNN.png)
+![Curva de aprendizaje de Keras](img/lc_default_Keras.jpg)|![Curva de aprendizaje de KNN](img/lc_default_KNN.png)
 ![Curva de aprendizaje de SVC](img/lc_default_SVC.png)
 
 Como podemos notar en las imágenes anteriores los algoritmos están realizando Overfitting y hay falta de datos.
@@ -148,11 +148,11 @@ KNN| 0.66 |
 SVM |0.69|
 Keras| 0.66|
 
-#### Curvas de aprendizajes
+#### **Curvas de aprendizajes**
 
-![Curva de aprendizaje de Naive Bayes con GTZA+ con corr](img/lc_corr_NB.png) |![Curva de aprendizaje de ID3 con GTZA+ con corr](img/lc_corr_ID3.png)
-![Curva de aprendizaje de Keras con GTZA+ con corr](img/lc_corr_Keras.png)|![Curva de aprendizaje de KNN con GTZA+ con corr](img/lc_corr_KNN.png)
-![Curva de aprendizaje de SVC con GTZA+ con corr](img/lc_corr_SVC.png)
+![Curva de aprendizaje de Naive Bayes con GTZAN+ con corr](img/lc_corr_NB.png) |![Curva de aprendizaje de ID3 con GTZAN+ con corr](img/lc_corr_ID3.png)
+![Curva de aprendizaje de Keras con GTZAN+ con corr](img/lc_corr_Keras.png)|![Curva de aprendizaje de KNN con GTZAN+ con corr](img/lc_corr_KNN.png)
+![Curva de aprendizaje de SVC con GTZAN+ con corr](img/lc_corr_SVC.png)
 
 Como podemos observar que en las curvas de aprendizaje hubo una pequeña mejoría pero la efectividad de los algoritmo disminuyó radicalmente. Veamos si la otra opción para proteger los algoritmos de overfiting nos ayuda más.
 
@@ -160,7 +160,7 @@ Como podemos observar que en las curvas de aprendizaje hubo una pequeña mejorí
 
 Decidimos utilizar como método de validación cruzada Stratified Group KFold. Veamos si afecta positivamente los algoritmos:
 
-#### Efectividad en promedio
+#### **Efectividad en promedio**
 
 |Algoritmo  |Resultado |
 |-----------|:---:|
@@ -170,12 +170,12 @@ KNN |0.69|
 SVM |0.68|
 Keras| 0.68 |
 
-#### Curvas de Aprendizajes
+#### **Curvas de Aprendizajes**
 
-![Curva de aprendizaje de Naive Bayes con GTZA+ con kfold](img/lc_kfold_NB.png) |![Curva de aprendizaje de ID3 con GTZA+ con kfold](img/lc_kfold_ID3.png)
-![Curva de aprendizaje de Keras con GTZA+ con kfold](img/lc_kfold_Keras.png)|![Curva de aprendizaje de KNN con GTZA+ con kfold](img/lc_kfold_KNN.png)
-![Curva de aprendizaje de SVC con GTZA+ con kfold](img/lc_kfold_SVC.png)
 
+![Curva de aprendizaje de Naive Bayes con GTZAN+ con kfold](img/lc_kfold_NB.png)|![Curva de aprendizaje de ID3 con GTZAN+ con kfold](img/lc_kfold_ID3.png)
+![Curva de aprendizaje de KNN con GTZAN+ con kfold](img/lc_kfold_KNN.png)|![Curva de aprendizaje de SVC con GTZAN+ con kfold](img/lc_kfold_SVC.png)
+![Curva de aprendizaje de Keras con GTZAN+ con kfold](img/lc_kfold_Keras.png)
 
 ### Añadiendo Dropout a Keras
 
@@ -185,7 +185,7 @@ Definimos el parámetro `rate` con 0.5, pues si el valor es muy pequeño entonce
 
 Con esta modificación al algoritmo obtenemos un porciento de efectividad de 0.65 en promedio y la curva de aprendizaje se comporta de la siguiente manera:
 
-![Curva de aprendizaje de Keras con GTZA+ con dropout](img/Keras-Droupout.png)|![Curva de aprendizaje de Keras con GTZA+ con dropout](img/Keras-Droupout-loss.png)
+![Curva de aprendizaje de Keras con GTZAN+ con dropout](img/Keras-Droupout.png)|![Curva de aprendizaje de Keras con GTZA+ con dropout](img/Keras-Droupout-loss.png)
 
 ### Añadiendo L2 a Keras
 
@@ -193,7 +193,7 @@ FALTA INFORMACIONNNNNNNNNNNNNNNNNNNNN
 
 Efectividad 0.56
 
-![Curva de aprendizaje de Keras con GTZA+ con dropout y L2](img/Keras-Droupout-L2.png)|![Curva de aprendizaje de Keras con GTZA+ con dropout y L2](img/Keras-Droupout-L2-loss.png)
+![Curva de aprendizaje de Keras con GTZAN+ con dropout y L2](img/Keras-Droupout-L2.png)|![Curva de aprendizaje de Keras con GTZA+ con dropout y L2](img/Keras-Droupout-L2-loss.png)
 
 ## Bibliografía
 

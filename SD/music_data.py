@@ -102,6 +102,7 @@ class MusicDataNode:
                     print("ERROR")
                     return songs
                 songs = chord_node.get_value(query_hash, music_name)
+                songs= None
                 if songs is None:
                     songs = self.find_song(music_name)
                     if songs != []:
@@ -156,8 +157,8 @@ class MusicDataNode:
             if client_socket:
                 while True:
                     try:
-                        data = music_file[start*1000:end*1000]._data
-                        print(data) 
+                        data = music_file[start*1000:end*1000].raw_data
+                        print(data)
                         a = pickle.dumps(data)
                         message = struct.pack("Q",len(a))+a
                         client_socket.sendall(message)

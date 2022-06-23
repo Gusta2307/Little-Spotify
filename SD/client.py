@@ -58,9 +58,6 @@ class ClientNode:
                 print(f"ERROR: Missing connection to server {self.request_node_address}")
                 return
             port = r_node.play_song(md_add, music_name)
-            # t1 = threading.Thread(target=r_node.play_song, args=([self.address, music_index]))
-            # t1.setName("play song")
-            # t1.start()
 
             p = pyaudio.PyAudio()
             CHUNK = 1024
@@ -80,12 +77,28 @@ class ClientNode:
             print("CLIENT CONNECTED TO", socket_address)
             data = b""
             payload_size = struct.calcsize("Q")
+            current_duration = 0
             time.sleep(3)
             print("Now Playing")
             while True:
                 try:
+                    try:
+                        r_node.ping()
+                    except:
+                        if self.connect_to_server():
+                            client_socket.close()
+                            client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                            r_node = get_request_node_instance(self.request_node_address)
+                            port = r_node.play_song(md_add, music_name, current_duration)
+                            client_socket.connect((self.request_node_address.split(':')[0], port)) 
+                        else:
+                            print("ERROR: Missing connection with server.")
+                            return
+
+
                     while len(data) < payload_size:
                         packet = client_socket.recv(4*1024) # 4K
+                        current_duration += CHUNK/44100
                         if not packet: break
                         data+=packet
 
@@ -96,6 +109,7 @@ class ClientNode:
                     
                     while len(data) < msg_size:
                         data += client_socket.recv(4*1024)
+                        current_duration += CHUNK/44100
         
                     frame_data = data[:msg_size]
                     data  = data[msg_size:]
@@ -105,9 +119,9 @@ class ClientNode:
                     if not len(data) < msg_size:
                         print('break')
                         break
-                except:
+                except Exception as e:
                     client_socket.close()
-                    print("Break")
+                    print(f"Break {e}")
                     break
                     
             client_socket.close()
@@ -163,9 +177,14 @@ class ClientNode:
                 if node.ping():
                     print(f"Connected to {r_node}")
                     self.request_node_address = r_node
-                    break
-            except:
-                print(f"Can't connect to {r_node}")
+                    # ! hacer un merge
+                    self._request_node_list = node.requests_list
+                    print("A")
+                    return True
+            except Exception as e:
+                print(f"ERROR: Can't connect to {r_node}\n{e}")
+        print("ERROR: Can't connect to any requests node.")
+        return False
 
     def check_connection(self):
         while True:
@@ -181,16 +200,16 @@ class ClientNode:
         
 
 def main(address, r_address, path=None):
-    print("PATH", path)
+    # print("PATH", path)
     node = ClientNode(address, r_address)
-    print("RUN...")
+    # print("RUN...")
     node.run()
     print("RUNNING")
     check_connetion_thread = threading.Thread(target=node.check_connection)
     check_connetion_thread.start()
 
-    upload_song = threading.Thread(target=node.upload_song, args=([path]))
-    upload_song.start()
+    connect_to_server_thread = threading.Thread(target=node.connect_to_server)
+    connect_to_server_thread.start()
 
     # host_ip, host_port = address.split(':')
     # try:
@@ -208,7 +227,5 @@ def main(address, r_address, path=None):
 if __name__ == '__main__':
     if len(sys.argv) == 3:
         main(sys.argv[1], sys.argv[2])
-    elif len(sys.argv) == 4:
-        main(sys.argv[1], sys.argv[2], sys.argv[3])
     else:
         print('Error: Missing arguments')

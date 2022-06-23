@@ -10,7 +10,7 @@ if __name__ == '__main__':
     # path = '/home/gustavo/Downloads/archive/Data/genres_original'
     # create_data(path, 'dataset GTZA')
  
-    data = pd.read_csv('GTZAN.csv')    
+    data = pd.read_csv('dataset con ruido.csv')    
     X, y = get_X_y(data)
     X = scaler_data(X)
     y = encode_names(y)
