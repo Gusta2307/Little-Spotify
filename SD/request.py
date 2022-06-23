@@ -52,22 +52,22 @@ class RequestNode:
         return True
     
 
-    # ! VERIFICAR TODOS LOS MUSIC DATA
-    
     def request_response(self, tag, _type):
         result = dict()
+        print(self.music_data_list)
         for md_add in self.music_data_list:
             try:
                 print(self.music_data_list)
                 print(md_add)
                 music_node = get_music_data_instance(md_add)
-                if _type == "name":
-                    song = music_node.get_music_by_name(tag)
-                elif _type == "genre":
-                    print("AAAA")
-                    song = music_node.get_music_by_genre(tag)
-                elif _type == "artist":
-                    song = music_node.get_music_by_artist(tag)
+                song = music_node.get_music(tag, _type)
+                # if _type == "name":
+                #     song = music_node.get_music_by_name(tag)
+                # elif _type == "genre":
+                #     print("AAAA")
+                #     song = music_node.get_music_by_genre(tag)
+                # elif _type == "artist":
+                #     song = music_node.get_music_by_artist(tag)
                 print(song)
                 if song is not None and song != []:
                     for s in song:

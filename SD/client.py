@@ -9,14 +9,11 @@ import pickle
 from pynput import keyboard as kb
 import os
 from utils import (
-    get_request_node_instance
+    get_request_node_instance,
+    TAG
 )
 
-TAG = {
-    0: "name",
-    1: "genre",
-    2: "artist"
-}
+
 
 @Pyro4.expose
 class ClientNode:
@@ -42,10 +39,10 @@ class ClientNode:
 
             if options == 0:
                 try:
-                    tag = TAG[int(input("Select search form\n0. Name\n1. Genre\n2. Artist\n"))]
+                    tag = int(input("Select search form\n0. Name\n1. Genre\n2. Artist\n"))
                     
-                    song_name = input(f"Enter {tag}: ")
-                
+                    song_name = input(f"Enter {TAG[tag]}: ")
+                    print("TAG", tag)
                     responses_song = r_node.request_response(song_name, tag)
                     print(responses_song)
                     count = 0

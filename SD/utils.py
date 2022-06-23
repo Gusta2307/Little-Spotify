@@ -1,6 +1,11 @@
 import Pyro4
 import hashlib
 
+TAG = {
+    0: "name",
+    1: "genre",
+    2: "artist"
+}
 
 def get_chord_node_instance(id):
     return get_proxy(f'CHORD{id}')

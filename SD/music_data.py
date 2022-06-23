@@ -16,7 +16,8 @@ from pydub import AudioSegment
 from utils import (
     hashing, 
     get_music_data_instance, 
-    get_chord_node_instance
+    get_chord_node_instance,
+    TAG
 )
 from random import randint
 
@@ -94,63 +95,60 @@ class MusicDataNode:
                     \nMusic_Data list: {self.music_data_list}')
             time.sleep(10)   
 
-    def get_music_by_name(self, music_name):
-        songs = []
+    # def get_music_by_name(self, music_name):
+    #     songs = []
 
-        while True:
-            chord_node = get_chord_node_instance(self.chord_id)
-            if chord_node is None:
-                chord_node = self.change_chord_node()
+    #     while True:
+    #         chord_node = get_chord_node_instance(self.chord_id)
+    #         if chord_node is None:
+    #             chord_node = self.change_chord_node()
                 
-            try:
-                query_hash = hashing(self.m, music_name)
-                if query_hash is None:
-                    print("ERROR")
-                    return songs
-                #songs = chord_node.get_value(query_hash, music_name)
-                songs= None
-                if songs is None:
-                    songs = self.find_song_by_name(music_name)
-                    if songs != []:
-                        chord_node.save_key(query_hash, (music_name, songs))
-                    else:
-                        print("No se encontro la cancion solicitada")
-                        return songs
+    #         try:
+    #             query_hash = hashing(self.m, music_name)
+    #             if query_hash is None:
+    #                 print("ERROR")
+    #                 return songs
+    #             #songs = chord_node.get_value(query_hash, music_name)
+    #             songs= None
+    #             if songs is None:
+    #                 songs = self.find_song_by_name(music_name)
+    #                 if songs != []:
+    #                     chord_node.save_key(query_hash, (music_name, songs))
+    #                 else:
+    #                     print("No se encontro la cancion solicitada")
+    #                     return songs
                     
-                # songs.append(song)
+    #             # songs.append(song)
                     
-                return songs
-            except:
-                if not self.chord_successors_list:
-                    print(f'Error: Could not connect with chord node {self.chord_id}')
-                    break
-        return songs
+    #             return songs
+    #         except:
+    #             if not self.chord_successors_list:
+    #                 print(f'Error: Could not connect with chord node {self.chord_id}')
+    #                 break
+    #     return songs
 
     
-    def get_music_by_genre(self, genre):
+    def get_music(self, tag, type_tag):
         songs = []
-        print("HOLAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
         while True:
             chord_node = get_chord_node_instance(self.chord_id)
             if chord_node is None:
                 chord_node = self.change_chord_node()
                 
             try:
-                query_hash = hashing(self.m, genre)
+                query_hash = hashing(self.m, tag)
                 if query_hash is None:
                     print("ERROR")
                     return songs
                 #songs = chord_node.get_value(query_hash, genre)
                 songs= None
                 if songs is None:
-                    songs = self.find_song_by_genre(genre)
+                    songs = self.find_song(tag, type_tag)
                     if songs != []:
-                        chord_node.save_key(query_hash, (genre, songs))
+                        chord_node.save_key(query_hash, (tag, songs))
                     else:
                         print("No se encontro la cancion solicitada")
                         return songs
-                    
-                # songs.append(song)
                     
                 return songs
             except Exception as e:
@@ -162,31 +160,41 @@ class MusicDataNode:
         return songs
 
 
-    def find_song_by_name(self, music_name):
+    def find_song(self, tag, type_tag):
         _songs = []
+        print(tag, type_tag)
         for mn in os.listdir(self.path):
-            if re.search(music_name, mn):
+            mp3 = stagger.read_tag(os.path.join(self.path, mn))
+            print("ABC", getattr(mp3, TAG[type_tag]))
+            if re.search(tag, getattr(mp3, TAG[type_tag])):
                 _songs.append(mn)
         return _songs
 
-    def find_song_by_genre(self, genre):
-        print("GENRE")
-        _songs = []
-        for mn in os.listdir(self.path):
-            mp3 = stagger.read_tag(os.path.join(self.path, mn))
-            print(mp3.title, mp3.genre)
-            if re.search(genre, mp3.genre):
-                _songs.append(mn)
-        return _songs
+    # def find_song_by_name(self, music_name):
+    #     _songs = []
+    #     for mn in os.listdir(self.path):
+    #         if re.search(music_name, mn):
+    #             _songs.append(mn)
+    #     return _songs
 
-    def fing_song_by_artist(self, artist):
-        _songs = []
-        for mn in os.listdir(self.path):
-            mp3 = stagger.read_tag(os.path.join(self.path, mn))
-            print(mp3.artist)
-            if re.search(artist, mp3.artist):
-                _songs.append(mn)
-        return _songs
+    # def find_song_by_genre(self, genre):
+    #     print("GENRE")
+    #     _songs = []
+    #     for mn in os.listdir(self.path):
+    #         mp3 = stagger.read_tag(os.path.join(self.path, mn))
+    #         print(mp3.title, mp3.genre)
+    #         if re.search(genre, mp3.genre):
+    #             _songs.append(mn)
+    #     return _songs
+
+    # def fing_song_by_artist(self, artist):
+    #     _songs = []
+    #     for mn in os.listdir(self.path):
+    #         mp3 = stagger.read_tag(os.path.join(self.path, mn))
+    #         print(mp3.artist)
+    #         if re.search(artist, mp3.artist):
+    #             _songs.append(mn)
+    #     return _songs
 
     def send_music_data(self, music_name, _start=0):
         host_ip, _ = self.address.split(":")
