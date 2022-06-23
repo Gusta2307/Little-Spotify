@@ -217,7 +217,7 @@ class MusicDataNode:
             if client_socket:
                 while True:
                     try:
-                        data = music_file[start*1000:end*1000].raw_data
+                        data = music_file[start*1000:end*1000]._data#.decode('UTF-8')
                         # print(data)
                         a = pickle.dumps(data)
                         message = struct.pack("Q",len(a))+a
