@@ -214,7 +214,7 @@ batch_size: La normalización en lotes consiste básicamente en añadir un paso 
 
 ![Curva de aprendizaje de Keras con GTZAN+ con dropout y L2](img/Keras-Droupout-L2.png)|![Curva de aprendizaje de Keras con GTZA+ con dropout y L2](img/Keras-Droupout-L2-loss.png)
 
-Al ver que la efectividad disminuyó radicalmente y que la curva de aprendizaje empeoró decidimos descartar la utilización de L2.
+Al ver que la efectividad disminuyó radicalmente y que la curva de aprendizaje empeoró decidimos descartar la utilización de L2, pero a pesar de estos resultados la curva respecto al loss mejoró considerablemente
 ### Aumento de datos para audio mediante la inyección de ruido
 
 El aumento de datos ayuda a generar datos sintéticos a partir de un conjunto de datos existente, de modo que se pueda mejorar la capacidad de generalización del modelo por lo que puede ser beneficioso para los algoritmos que tenemos hasta el momento.
