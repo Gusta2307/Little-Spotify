@@ -54,14 +54,20 @@ class RequestNode:
 
     # ! VERIFICAR TODOS LOS MUSIC DATA
     
-    def request_response(self, music_name):
+    def request_response(self, tag, _type):
         result = dict()
         for md_add in self.music_data_list:
             try:
                 print(self.music_data_list)
                 print(md_add)
                 music_node = get_music_data_instance(md_add)
-                song = music_node.get_music_by_name(music_name)
+                if _type == "name":
+                    song = music_node.get_music_by_name(tag)
+                elif _type == "genre":
+                    print("AAAA")
+                    song = music_node.get_music_by_genre(tag)
+                elif _type == "artist":
+                    song = music_node.get_music_by_artist(tag)
                 print(song)
                 if song is not None and song != []:
                     for s in song:
@@ -72,17 +78,18 @@ class RequestNode:
                     
                     #return md_add, song
             except:
+                print("GFGFGFGFGFGFGFGFGFGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG")
                 continue
         return result
                 
         
-    def play_song(self, md_add, music_name):
+    def play_song(self, md_add, music_name, duration=0):
         for md in md_add:
             try: 
                 
                 music_node = get_music_data_instance(md)
 
-                port = music_node.send_music_data(music_name)
+                port = music_node.send_music_data(music_name, duration)
 
                 server_socket = socket.socket()
                 c_host_ip, _ = self.address.split(':')
@@ -120,7 +127,7 @@ class RequestNode:
         c,_ = server_socket.accept()
         current_duration = 0 #+= CHUNK/44100
         while True:
-            # try:
+            try:
                 try:
                     music_node.ping()
                 except:
@@ -138,6 +145,9 @@ class RequestNode:
                                 client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
                                 client_socket.connect((md.split(':')[0], _port))
                                 music_node = temp_music_node
+                                data = b""
+                                payload_size = struct.calcsize("Q")
+                                time.sleep(2)
                                 print("IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII")
                                 break
 
@@ -162,6 +172,7 @@ class RequestNode:
                 data  = data[msg_size:]
                 frame = pickle.loads(frame_data)
                 print(current_duration)
+                # print(frame)
                 if frame == b'':
                     server_socket.close()
                     client_socket.close()
@@ -175,10 +186,10 @@ class RequestNode:
 
                 # stream.write(frame)
 
-            # except:
-            #     server_socket.close()
-            #     client_socket.close()
-            #     break
+            except:
+                server_socket.close()
+                client_socket.close()
+                break
 
         print('Audio closed')
 

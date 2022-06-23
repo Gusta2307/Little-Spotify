@@ -8,8 +8,10 @@ import re
 import pickle
 import struct
 import socket
+import stagger
 import pyaudio
 import wave
+# from tinytag import TinyTag
 from pydub import AudioSegment
 from utils import (
     hashing, 
@@ -34,6 +36,10 @@ class MusicDataNode:
     
     def ping(self):
         return True
+
+    # def extract_metadatas(self, song_name):
+    #     audio = TinyTag.get(song_name)
+    #     return audio.title, audio.artist, audio.genre, audio.year, audio.bitrate, audio.composer, audio.filesize,audio.albumartist, audio.duration, audio.track_total
 
     def add_music_data(self, address):
         if address not in self._music_data_list:
@@ -101,9 +107,10 @@ class MusicDataNode:
                 if query_hash is None:
                     print("ERROR")
                     return songs
-                songs = chord_node.get_value(query_hash, music_name)
+                #songs = chord_node.get_value(query_hash, music_name)
+                songs= None
                 if songs is None:
-                    songs = self.find_song(music_name)
+                    songs = self.find_song_by_name(music_name)
                     if songs != []:
                         chord_node.save_key(query_hash, (music_name, songs))
                     else:
@@ -117,13 +124,66 @@ class MusicDataNode:
                 if not self.chord_successors_list:
                     print(f'Error: Could not connect with chord node {self.chord_id}')
                     break
-        
         return songs
 
-    def find_song(self, music_name):
+    
+    def get_music_by_genre(self, genre):
+        songs = []
+        print("HOLAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+        while True:
+            chord_node = get_chord_node_instance(self.chord_id)
+            if chord_node is None:
+                chord_node = self.change_chord_node()
+                
+            try:
+                query_hash = hashing(self.m, genre)
+                if query_hash is None:
+                    print("ERROR")
+                    return songs
+                #songs = chord_node.get_value(query_hash, genre)
+                songs= None
+                if songs is None:
+                    songs = self.find_song_by_genre(genre)
+                    if songs != []:
+                        chord_node.save_key(query_hash, (genre, songs))
+                    else:
+                        print("No se encontro la cancion solicitada")
+                        return songs
+                    
+                # songs.append(song)
+                    
+                return songs
+            except Exception as e:
+                print(e)
+                # if not self.chord_successors_list:
+                #     print(f'Error: Could not connect with chord node {self.chord_id}')
+                #     break
+        return songs
+
+
+    def find_song_by_name(self, music_name):
         _songs = []
         for mn in os.listdir(self.path):
             if re.search(music_name, mn):
+                _songs.append(mn)
+        return _songs
+
+    def find_song_by_genre(self, genre):
+        print("GENRE")
+        _songs = []
+        for mn in os.listdir(self.path):
+            mp3 = stagger.read_tag(os.path.join(self.path, mn))
+            print(mp3.title, mp3.genre)
+            if re.search(genre, mp3.genre):
+                _songs.append(mn)
+        return _songs
+
+    def fing_song_by_artist(self, artist):
+        _songs = []
+        for mn in os.listdir(self.path):
+            mp3 = stagger.read_tag(os.path.join(self.path, mn))
+            print(mp3.artist)
+            if re.search(artist, mp3.artist):
                 _songs.append(mn)
         return _songs
 
@@ -156,8 +216,8 @@ class MusicDataNode:
             if client_socket:
                 while True:
                     try:
-                        data = music_file[start*1000:end*1000]._data
-                        #print(data) 
+                        data = music_file[start*1000:end*1000].raw_data
+                        # print(data)
                         a = pickle.dumps(data)
                         message = struct.pack("Q",len(a))+a
                         client_socket.sendall(message)
@@ -204,6 +264,7 @@ class MusicDataNode:
                         conn.sendall(data)
                         data = f.read(CHUNK_SIZE)
                         if data == b'':
+                            f.close()
                             break
             s.close()
 
@@ -223,7 +284,9 @@ class MusicDataNode:
                     f.write(chunk)
                     chunk = s.recv(CHUNK_SIZE)
                     if chunk == b'':
+                        f.close()
                         break
+                
             print(f'Replicacion Completada: {music_name} {self.address}')
             s.close()
 

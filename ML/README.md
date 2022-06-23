@@ -153,7 +153,7 @@ Veamos cómo influyó este cambio en la efectividad y las curvas de aprendizaje 
 | SVM         |   0.69   |
 | Keras       |   0.66   |
 
-#### Curvas de aprendizajes
+#### **Curvas de aprendizajes**
 
 <p float="left">
     <img src="img/lc_corr_NB.png" width="300"/>
@@ -169,7 +169,7 @@ Como podemos observar que en las curvas de aprendizaje hubo una pequeña mejorí
 
 Decidimos utilizar como método de validación cruzada Stratified Group KFold. Veamos si afecta positivamente los algoritmos:
 
-#### Efectividad en promedio
+#### **Efectividad en promedio**
 
 | Algoritmo   | Resultado |
 | ----------- | :-------: |
@@ -179,7 +179,7 @@ Decidimos utilizar como método de validación cruzada Stratified Group KFold. V
 | SVM         |   0.68   |
 | Keras       |   0.68   |
 
-#### Curvas de Aprendizajes
+#### **Curvas de Aprendizajes**
 
 <p float="left">
     <img src="img/lc_kfold_NB.png" width="300"/>
@@ -199,16 +199,58 @@ Definimos el parámetro `rate` con 0.5, pues si el valor es muy pequeño entonce
 
 Con esta modificación al algoritmo obtenemos un porciento de efectividad de 0.65 en promedio y la curva de aprendizaje se comporta de la siguiente manera:
 
-![Curva de aprendizaje de Keras con GTZA+ con dropout](img/Keras-Droupout.png)|![Curva de aprendizaje de Keras con GTZA+ con dropout](img/Keras-Droupout-loss.png)
+![Curva de aprendizaje de Keras con GTZAN+ con dropout](img/Keras-Droupout.png)|![Curva de aprendizaje de Keras con GTZA+ con dropout](img/Keras-Droupout-loss.png)
 
 ### Añadiendo L2 a Keras
 
 La idea detrás de este tipo de regularización es reducir el valor de los parámetros para que sean pequeños.
 Esta técnica introduce un término adicional de penalización en la función de coste original (L), añadiendo a su valor la suma de los cuadrados de los parámetros (ω).
+<<<<<<< HEAD
+
+batch_size: La normalización en lotes consiste básicamente en añadir un paso extra, habitualmente entre las neuronas y la función de activación, con la idea de normalizar las activaciones de salida. Nosotros utilizamos batch_size=128 y se obtuvo una efectividad 0.56.
+=======
 
 batch_size: La normalización en lotes consiste básicamente en añadir un paso extra, habitualmente entre las neuronas y la función de activación, con la idea de normalizar las activaciones de salida. Nosotros utilizamos batch_size=128 y se obtuvo una efectividad 0.56.
 
-![Curva de aprendizaje de Keras con GTZA+ con dropout y L2](img/Keras-Droupout-L2.png)|![Curva de aprendizaje de Keras con GTZA+ con dropout y L2](img/Keras-Droupout-L2-loss.png)
+![Curva de aprendizaje de Keras con GTZAN+ con dropout y L2](img/Keras-Droupout-L2.png)|![Curva de aprendizaje de Keras con GTZA+ con dropout y L2](img/Keras-Droupout-L2-loss.png)
+
+Al ver que la efectividad disminuyó radicalmente y que la curva de aprendizaje empeoró decidimos descartar la utilización de L2.
+### Aumento de datos para audio mediante la inyección de ruido
+
+El aumento de datos ayuda a generar datos sintéticos a partir de un conjunto de datos existente, de modo que se pueda mejorar la capacidad de generalización del modelo por lo que puede ser beneficioso para los algoritmos que tenemos hasta el momento.
+
+Para generar datos sintácticos para audio, podemos aplicar inyección de ruido, cambio de tiempo, cambio de tono y velocidad. Modificar el tiempo, el tono y la velocidad no nos parece correcto porque esto cambios podrían influir en que la "nueva canción" cambie de género, por lo que decidimos probar la inyección de ruido.
+
+#### Efectividad promedio
+
+| Algoritmo   | Resultado |
+| ----------- | :-------: |
+| Naive Bayes |   0.27   |
+| ID3         |   0.32   |
+| KNN         |   0.42   |
+| SVM         |   0.41   |
+| Keras       |   0.39   |
+
+
+
+#### Curvas de Aprendizaje
+>>>>>>> 500dcc658f731248936c2a97778edfbb3cfd607a
+
+<p float="left">
+    <img src="img/lc_noise_NB.png" width="300"/>
+    <img src="img/lc_noise_ID3.png" width="300"/>
+    <img src="img/lc_noise_KNN.png" width="300"/>
+    <img src="img/lc_noise_SVC.png" width="300"/>
+    <img src="img/lc_noise_Keras.jpg" width="300"/>
+</p>
+
+Como podemos notar todos los algoritmos dan peores resultados por lo que puede ser, que la inyección de ruido traiga consigo la modificación de las características del audio a tal punto que el dato sintético no pertenezca al mismo género que el audio original.
+
+# Conclusiones
+
+Después de haber probado diferentes algoritmos con varias modificaciones podemos concluir los mejores resultados en cuanto a la efectividad son KNN, SVM y Keras con Dropout. Los 3 utilizando reducción de las dimensiones del modelo y cross-validation; pero, si verificamos las curvas de aprendizaje podemos notar que KNN realiza un Overfiting perfecto por lo que queda rotundamente descartado.
+
+Por otro lado, SVM no parece ser un mal algoritmo para clasificar canciones según el género, solo que creamos que necesita más datos, los cuales nos son difíciles de obtener; por lo que nos quedamos con Keras que tiene una efectividad de 0.65, que es muy similar a la de SVM pero la curva de aprendizaje se comporta mejor.
 
 Al ver que la efectividad disminuyó radicalmente y que la curva de aprendizaje empeoró decidimos descartar la utilización de L2.
 ### Aumento de datos para audio mediante la inyección de ruido

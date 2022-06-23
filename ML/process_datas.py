@@ -8,14 +8,10 @@ from sklearn.preprocessing import StandardScaler
 
 
 
-def create_data(path: str, name: str):
-    """
-    Crea el dataset
-    """
+def create_dataset(path: str, name: str):
     name += '.csv'
-    # genres = 'Hip-Hop_-_Rap Pop R&B_-_Soul Rock Country Blues KPOP'.split()
+    genres = 'bambileke bikutsi makossa salsa zouk blues classical country disco hiphop jazz metal pop reggae rock'.split()
     header = 'filename chroma_freq rms spectral_centroid spectral_bandwidth rolloff zero_crossing_rate dbfs'
-    # genres = genres[:5]
 
     for i in range(1, 21):
         header += f' mfcc{i}'
@@ -29,7 +25,7 @@ def create_data(path: str, name: str):
         writer = csv.writer(file_csv)
         writer.writerow(header)
 
-    for g in os.listdir(path):
+    for g in genres:
         count = 0
         dirs = os.path.join(path, g)
 
@@ -65,26 +61,16 @@ def create_data(path: str, name: str):
 
 
 def get_X_y(data):
-    """
-    Separa las caracteristicas del target
-    """
     FEATURES = [        
         'chroma_freq',
         'rms',
-        'spectral_centroid',
-        'spectral_bandwidth',
-        'rolloff',
         'zero_crossing_rate',
-        'mfcc1',
-        'mfcc2',
         'mfcc3',
         'mfcc4',
         'mfcc5',
         'mfcc6',
         'mfcc7',
-        'mfcc8',
         'mfcc9',
-        'mfcc10',
         'mfcc11',
         'mfcc12',
         'mfcc13',
@@ -97,40 +83,26 @@ def get_X_y(data):
         'mfcc20',
     ]
 
-    # GTZAN ORIGINAL
-    # FEATURES = 'length chroma_stft_mean chroma_stft_var rms_mean rms_var spectral_centroid_mean spectral_centroid_var spectral_bandwidth_mean spectral_bandwidth_var rolloff_mean rolloff_var zero_crossing_rate_mean zero_crossing_rate_var harmony_mean harmony_var perceptr_mean perceptr_var tempo mfcc1_mean mfcc1_var mfcc2_mean mfcc2_var mfcc3_mean mfcc3_var mfcc4_mean mfcc4_var mfcc5_mean mfcc5_var mfcc6_mean mfcc6_var mfcc7_mean mfcc7_var mfcc8_mean mfcc8_var mfcc9_mean mfcc9_var mfcc10_mean mfcc10_var mfcc11_mean mfcc11_var mfcc12_mean mfcc12_var mfcc13_mean mfcc13_var mfcc14_mean mfcc14_var mfcc15_mean mfcc15_var mfcc16_mean mfcc16_var mfcc17_mean mfcc17_var mfcc18_mean mfcc18_var mfcc19_mean mfcc19_var mfcc20_mean mfcc20_var'.split(' ')
-
-
     TARGET = 'genre'
 
     X = data[FEATURES]
     y = data[TARGET]
-    return X, y
+    groups = data[TARGET]
+    return X, y, groups
 
 
 def scaler_data(X):
-    """
-    Escala los datos
-    """
     scaler = StandardScaler()
     return scaler.fit_transform(X)
 
 
 def encode_names(y):
-    """
-    Codifica los targets 
-    """
     lb = LabelEncoder()
     y = lb.fit_transform(y)
     return y
 
 
 def encode_features(data, features):
-    """
-    Codifica los features
-    """
     for feat in features:
         le = LabelEncoder()
         data[feat] = le.fit_transform(data[feat])
-
-

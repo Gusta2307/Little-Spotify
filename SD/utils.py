@@ -45,3 +45,17 @@ def hashing(bits, string):
 # import wave
 # wf = wave.open('./MD1/Glass Animals - Heat Waves.wav', 'rb')
 # print(wf.getnframes())
+
+import os, re, stagger
+def find_song_by_genre(genre, path):
+    print("GENRE")
+    _songs = []
+    for mn in os.listdir(path):
+        print(os.path.join(path, mn))
+        mp3 = stagger.read_tag(os.path.join(path, mn))
+        print(mp3.title, mp3.genre)
+        if re.search(genre, mp3.genre):
+            _songs.append(mn)
+    return _songs
+
+# find_song_by_genre('pop', '/home/gustavo/Desktop/Little-Spotify/SD/MD1')
