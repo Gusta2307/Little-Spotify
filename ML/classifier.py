@@ -1,82 +1,167 @@
-# from tensorflow.keras import Sequential, layers
+import numpy as np
 from sklearn.svm import SVC
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import classification_report
 from sklearn.naive_bayes import GaussianNB
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
+from tensorflow.keras import Sequential, layers
+from sklearn.model_selection import StratifiedShuffleSplit
+
+    
+
+def KNN(X, y, groups, n_splits=3, n_neighbors=5, weights='distance'):
+    values = []
+    best_value = 0
+    best_partition = None
+    
+    st = StratifiedShuffleSplit(n_splits=n_splits)
+    splits = st.split(X, y, groups)
+    model = KNeighborsClassifier(n_neighbors=n_neighbors, weights=weights)
+    
+    for train_idx, val_idx in splits:
+        X_tr = X.loc[train_idx]
+        y_tr = y.loc[train_idx]
+
+        X_val = X.loc[val_idx]
+        y_val = y.loc[val_idx]
+        
+        model.fit(X_tr, y_tr)
+        score = model.score(X_val, y_val)
+        values.append(score)
+        
+        if best_value < score:
+            best_value = score
+            best_partition = (X_tr, y_tr)
+    
+    return best_value, best_partition, np.mean(values)
 
 
+def Naive_Bayer(X, y, groups, n_splits=3):    
+    values = []
+    best_value = 0
+    best_partition = None
 
-def knn(X_train, X_test, y_train , y_test):
-    """
-    Algoritmo de KNN
-    """
-    model = KNeighborsClassifier(n_neighbors=5, weights='distance')
-    model.fit(X_train, y_train)
-    score = model.score(X_test, y_test)
-    return score
-
-
-def naive_bayes(X_train, X_test, y_train , y_test):
-    """
-    Algoritmo Naive Bayes 
-    """
+    st = StratifiedShuffleSplit(n_splits=n_splits)
+    splits = st.split(X, y, groups)
     model = GaussianNB()
-    model.fit(X_train, y_train)
-    score = model.score(X_test, y_test)
-    return score
+    
+    for train_idx, val_idx in splits:
+        X_tr = X.loc[train_idx]
+        y_tr = y.loc[train_idx]
+        
+        X_val = X.loc[val_idx]
+        y_val = y.loc[val_idx]
+
+        model.fit(X_tr, y_tr)
+        score = model.score(X_val, y_val)
+        values.append(score)
+
+        if best_value < score:
+            best_value = score
+            best_partition = (X_tr, y_tr)
+
+    return best_value, best_partition, np.mean(values)
 
 
-def id3(X_train, X_test, y_train , y_test):
-    """
-    Algoritmo de Árboles de decisión
-    """
-    model = DecisionTreeClassifier()
-    model.fit(X_train, y_train)
-    score = model.score(X_test, y_test)
-    return score
+def ID3(X, y, groups, n_splits=3, clf=DecisionTreeClassifier):
+    values = []
+    best_value = 0
+    best_partition = None
+
+    st = StratifiedShuffleSplit(n_splits=n_splits)
+    splits = st.split(X, y, groups)
+    model = clf()
+    
+    for train_idx, val_idx in splits:
+        X_tr = X.loc[train_idx]
+        y_tr = y.loc[train_idx]
+        
+        X_val = X.loc[val_idx]
+        y_val = y.loc[val_idx]
+
+        model.fit(X_tr, y_tr)
+        score = model.score(X_val, y_val)
+        values.append(score)
+
+        if best_value < score:
+            best_value = score
+            best_partition = (X_tr, y_tr)
+
+    return best_value, best_partition, np.mean(values)
 
 
-def svm(X_train, X_test, y_train , y_test):
-    """"
-    Algoritmo de Support Vector Classification
-    """
-    model = SVC(kernel='rbf', decision_function_shape='ovo', class_weight='balanced')
-    model.fit(X_train, y_train)
-    score = model.score(X_test, y_test)
-    return score
+def SVM(X, y, groups, n_splits=3, kernel='rbf', decision='ovo', weight='balanced'):
+    values = []
+    best_value = 0
+    best_partition = None
 
+    st = StratifiedShuffleSplit(n_splits=n_splits)
+    splits = st.split(X, y, groups)
+    model = SVC(kernel=kernel, decision_function_shape=decision, class_weight=weight)
+    
+    for train_idx, val_idx in splits:
+        X_tr = X.loc[train_idx]
+        y_tr = y.loc[train_idx]
+        
+        X_val = X.loc[val_idx]
+        y_val = y.loc[val_idx]
+
+        model.fit(X_tr, y_tr)
+        score = model.score(X_val, y_val)
+        values.append(score)
+
+        if best_value < score:
+            best_value = score
+            best_partition = (X_tr, y_tr)
+
+    return best_value, best_partition, np.mean(values)
 
 
 class Keras:
-    """
-    Algotitmo de Keras
-    """
     def __init__(self) -> None:
-        self.model = Sequential()
+        self.history = None
+
+
+    def evaluate(self, X, y, groups, n_splits=3):
+        values = []
+        best_value = 0
+        best_partition = None
+        best_curve = None
+
+        st = StratifiedShuffleSplit(n_splits=n_splits)
+        splits = st.split(X, y, groups)
+
+        for train_idx, val_idx in splits:
+            X_tr = X.loc[train_idx]
+            y_tr = y.loc[train_idx]
+
+            X_val = X.loc[val_idx]
+            y_val = y.loc[val_idx]
+            
+            accuray, _ = self.classification(X_tr, X_val, y_tr, y_val)
+            values.append(accuray)
+
+            if best_value < accuray:
+                best_value = accuray
+                best_partition = (X_tr, y_tr)
+                best_curve = self.history
+        
+        return best_value, best_partition, np.mean(values), best_curve
 
     
-    def evaluate(self, X_train, X_test, y_train , y_test, epochs=20):
-        """
-        Evaluación del modelo 
-        """
-        self.model.add(layers.Dense(512, activation='relu', input_shape=(X_train.shape[1],)))
-        self.model.add(layers.Dense(256, activation='relu'))
-        self.model.add(layers.Dense(128, activation='relu'))
-        self.model.add(layers.Dense(5, activation='softmax'))
-        self.model.summary()
-        self.model.compile(optimizer='adam', loss='sparse_categorical_crossentropy',
-                           metrics=['accuracy'])
+    def classification(self, X_train, X_test, y_train , y_test, epochs=20, validation=0.2, rate=0.5, batch=128):
+        model = Sequential()
+        model.add(layers.Dense(1600, activation='relu', input_shape=(X_train.shape[1],)))
+        model.add(layers.Dropout(rate=rate))
+        model.add(layers.Dense(800, activation='relu'))
+        model.add(layers.Dropout(rate=rate))
+        model.add(layers.Dense(400, activation='relu'))
+        model.add(layers.Dropout(rate=rate))
+        model.add(layers.Dense(15, activation='softmax'))
+        model.summary()
+        model.compile(optimizer='adam', loss='sparse_categorical_crossentropy',
+                      metrics=['accuracy'])
         
-        self.model.fit(X_train, y_train, validation_split=0.1, epochs=epochs, batch_size=128)
-        test_loss , test_acc = self.model.evaluate(X_test, y_test)
-        return test_acc, test_loss
-
-
-    def prediction(self, X_test, y_test):
-        pred = self.model.predict(X_test)
-        report = classification_report(y_test, pred)
-        cf = confusion_matrix(y_test, pred)
-        return report, cf
+        self.history = model.fit(X_train, y_train, validation_split=validation, epochs=epochs, batch_size=batch, verbose=0)
+        loss, accuracy = model.evaluate(X_test, y_test)
+        return accuracy, loss

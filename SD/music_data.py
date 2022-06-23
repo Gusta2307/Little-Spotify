@@ -10,6 +10,7 @@ import struct
 import socket
 import pyaudio
 import wave
+# from tinytag import TinyTag
 from pydub import AudioSegment
 from utils import (
     hashing, 
@@ -34,6 +35,10 @@ class MusicDataNode:
     
     def ping(self):
         return True
+
+    # def extract_metadatas(self, song_name):
+    #     audio = TinyTag.get(song_name)
+    #     return audio.title, audio.artist, audio.genre, audio.year, audio.bitrate, audio.composer, audio.filesize,audio.albumartist, audio.duration, audio.track_total
 
     def add_music_data(self, address):
         if address not in self._music_data_list:
@@ -283,10 +288,12 @@ def main(address, md_address, chord_address, bits, path):
 # ? <ADD> <MD_ADD> <CHORD_ADD> <BITS> <PATH>
 
 if __name__ == '__main__':
-    print(sys.argv)
-    if len(sys.argv) == 5:
-        main(sys.argv[1], None, sys.argv[2], int(sys.argv[3]), sys.argv[4])
-    elif len(sys.argv) == 6:
-        main(sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4]), sys.argv[5]) 
-    else:
-        print('Error: Missing arguments')
+    m1 = MusicDataNode('12', '34', 4, '/.home')
+    print(m1.extract_metadatas('/home/grettel/Music/Backstreet_Boy/EverybodyBackstreetsback.mp3'))
+    # print(sys.argv)
+    # if len(sys.argv) == 5:
+    #     main(sys.argv[1], None, sys.argv[2], int(sys.argv[3]), sys.argv[4])
+    # elif len(sys.argv) == 6:
+    #     main(sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4]), sys.argv[5]) 
+    # else:
+    #     print('Error: Missing arguments')
