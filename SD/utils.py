@@ -2,7 +2,7 @@ import Pyro4
 import hashlib
 
 TAG = {
-    0: "name",
+    0: "title",
     1: "genre",
     2: "artist"
 }
