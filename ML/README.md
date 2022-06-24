@@ -241,36 +241,6 @@ Para generar datos sintácticos para audio, podemos aplicar inyección de ruido,
 
 Como podemos notar todos los algoritmos dan peores resultados por lo que puede ser, que la inyección de ruido traiga consigo la modificación de las características del audio a tal punto que el dato sintético no pertenezca al mismo género que el audio original.
 
-### Aumento de datos para audio mediante la inyección de ruido
-
-El aumento de datos ayuda a generar datos sintéticos a partir de un conjunto de datos existente, de modo que se pueda mejorar la capacidad de generalización del modelo por lo que puede ser beneficioso para los algoritmos que tenemos hasta el momento.
-
-Para generar datos sintácticos para audio, podemos aplicar inyección de ruido, cambio de tiempo, cambio de tono y velocidad. Modificar el tiempo, el tono y la velocidad no nos parece correcto porque esto cambios podrían influir en que la "nueva canción" cambie de género, por lo que decidimos probar la inyección de ruido.
-
-#### Efectividad promedio
-
-| Algoritmo   | Resultado |
-| ----------- | :-------: |
-| Naive Bayes |   0.27   |
-| ID3         |   0.32   |
-| KNN         |   0.42   |
-| SVM         |   0.41   |
-| Keras       |   0.39   |
-
-
-
-#### Curvas de Aprendizaje
-
-<p float="left">
-    <img src="img/lc_noise_NB.png" width="300"/>
-    <img src="img/lc_noise_ID3.png" width="300"/>
-    <img src="img/lc_noise_KNN.png" width="300"/>
-    <img src="img/lc_noise_SVC.png" width="300"/>
-    <img src="img/lc_noise_Keras.jpg" width="300"/>
-</p>
-
-Como podemos notar todos los algoritmos dan peores resultados por lo que puede ser, que la inyección de ruido traiga consigo la modificación de las características del audio a tal punto que el dato sintético no pertenezca al mismo género que el audio original.
-
 # Conclusiones
 
 Después de haber probado diferentes algoritmos con varias modificaciones podemos concluir los mejores resultados en cuanto a la efectividad son KNN, SVM y Keras con Dropout. Los 3 utilizando reducción de las dimensiones del modelo y cross-validation; pero, si verificamos las curvas de aprendizaje podemos notar que KNN realiza un Overfiting perfecto por lo que queda rotundamente descartado.
