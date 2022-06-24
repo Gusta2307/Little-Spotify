@@ -5,7 +5,7 @@
 La primera idea que tuvimos para darle solución al problema fue usar Naive Bayes o Árboles de decisión con las extracción de las siguientes caracteristicas en solo los primeros 30 segundos de las canciones en formato mp3:
 
 - **Chroma Feature**: Es una poderosa herramienta para analizar características musicales cuyos tonos se pueden categorizar significativamente y cuya afinación se aproxima a la escala de temperamento igual.
-- **Spectral Bandwidth**: Calcule el ancho de banda espectral de orden p.
+- **Spectral Bandwidth**: Calcula el ancho de banda espectral de orden p.
 - **RMS**: Calcula root-mean-square (RMS) para cada frame, ya sea de las muestras de audio o de un espectrograma.
 - **Spectral Centroid**: El centroide espectral indica dónde se encuentra el "centroide" del sonido y se calcula de acuerdo con el promedio ponderado de la frecuencia del sonido
 - **Rolloff espectral**: La derivación espectral (Spectral Rolloff) es una medida de la forma de la señal, que representa la frecuencia en un porcentaje específico de la energía espectral (como el 85%).
@@ -39,7 +39,7 @@ Con todo esto se probó las ideas que se tenían hasta el momento y estos fueron
 
 Por estos resultados es preferible analizar la canción en su totalidad.
 
-## Segunda Idea : Keras
+## Segunda Idea : Redes Neuronales (Keras)
 
 Pensamos en utilizar este algoritmo antes de verlo en conferencias por lo que no definimos los parámetros de la forma más correcta para el problema en cuestión, los primeros valores que se utilizaron fueron:
 
