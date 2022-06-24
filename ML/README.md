@@ -230,7 +230,6 @@ Para generar datos sintácticos para audio, podemos aplicar inyección de ruido,
 
 
 #### Curvas de Aprendizaje
->>>>>>> 500dcc658f731248936c2a97778edfbb3cfd607a
 
 <p float="left">
     <img src="img/lc_noise_NB.png" width="300"/>
@@ -242,13 +241,6 @@ Para generar datos sintácticos para audio, podemos aplicar inyección de ruido,
 
 Como podemos notar todos los algoritmos dan peores resultados por lo que puede ser, que la inyección de ruido traiga consigo la modificación de las características del audio a tal punto que el dato sintético no pertenezca al mismo género que el audio original.
 
-# Conclusiones
-
-Después de haber probado diferentes algoritmos con varias modificaciones podemos concluir los mejores resultados en cuanto a la efectividad son KNN, SVM y Keras con Dropout. Los 3 utilizando reducción de las dimensiones del modelo y cross-validation; pero, si verificamos las curvas de aprendizaje podemos notar que KNN realiza un Overfiting perfecto por lo que queda rotundamente descartado.
-
-Por otro lado, SVM no parece ser un mal algoritmo para clasificar canciones según el género, solo que creamos que necesita más datos, los cuales nos son difíciles de obtener; por lo que nos quedamos con Keras que tiene una efectividad de 0.65, que es muy similar a la de SVM pero la curva de aprendizaje se comporta mejor.
-
-Al ver que la efectividad disminuyó radicalmente y que la curva de aprendizaje empeoró decidimos descartar la utilización de L2.
 ### Aumento de datos para audio mediante la inyección de ruido
 
 El aumento de datos ayuda a generar datos sintéticos a partir de un conjunto de datos existente, de modo que se pueda mejorar la capacidad de generalización del modelo por lo que puede ser beneficioso para los algoritmos que tenemos hasta el momento.
