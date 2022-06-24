@@ -205,12 +205,8 @@ Con esta modificación al algoritmo obtenemos un porciento de efectividad de 0.6
 
 La idea detrás de este tipo de regularización es reducir el valor de los parámetros para que sean pequeños.
 Esta técnica introduce un término adicional de penalización en la función de coste original (L), añadiendo a su valor la suma de los cuadrados de los parámetros (ω).
-<<<<<<< HEAD
 
-batch_size: La normalización en lotes consiste básicamente en añadir un paso extra, habitualmente entre las neuronas y la función de activación, con la idea de normalizar las activaciones de salida. Nosotros utilizamos batch_size=128 y se obtuvo una efectividad 0.56.
-=======
-
-batch_size: La normalización en lotes consiste básicamente en añadir un paso extra, habitualmente entre las neuronas y la función de activación, con la idea de normalizar las activaciones de salida. Nosotros utilizamos batch_size=128 y se obtuvo una efectividad 0.56.
+batch_size: La normalización en lotes consiste básicamente en añadir un paso extra, habitualmente entre las neuronas y la función de activación, con la idea de normalizar las activaciones de salida. Se utilizó batch_size=128.
 
 ![Curva de aprendizaje de Keras con GTZAN+ con dropout y L2](img/Keras-Droupout-L2.png)|![Curva de aprendizaje de Keras con GTZA+ con dropout y L2](img/Keras-Droupout-L2-loss.png)
 
