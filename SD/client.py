@@ -80,6 +80,7 @@ class ClientNode:
         port, duration = r_node.play_song(md_add, music_name)
 
         view_console("Loading...")
+        self.is_paused = False
         p = pyaudio.PyAudio()
         CHUNK = 1024
         stream = p.open(format=p.get_format_from_width(2),
