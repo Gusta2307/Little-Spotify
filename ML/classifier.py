@@ -60,6 +60,7 @@ def Naive_Bayer(X, y, groups, n_splits=3):
             best_value = score
             best_partition = (X_tr, y_tr)
 
+    
     return best_value, best_partition, np.mean(values)
 
 

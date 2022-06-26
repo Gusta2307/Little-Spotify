@@ -8,7 +8,8 @@ from cfonts import render
 TAG = {
     0: "title",
     1: "genre",
-    2: "artist"
+    2: "artist",
+    3: "see_all"
 }
 
 
@@ -29,7 +30,6 @@ def get_client_node_instance(id):
 
 
 def get_proxy(id):
-    # Pyro4.Proxy(f'PYRONAME:{id}')
     with Pyro4.Proxy(f'PYRONAME:{id}') as p:
         try:
             p._pyroBind()
@@ -54,15 +54,17 @@ def init_client():
 def get_duration(file):
     return int(AudioSegment.from_file(file).duration_seconds)
 
-def view_console(msg, list=None):
-    rich.console.Console().clear()
+import os
+def view_console(msg, list=None, style="green"):
+    # rich.console.Console().
+    os.system('clear')
     init_client()
     _console = console.Console()
-    _console.print(f'{msg}', style="green")
+    _console.print(f'{msg}', style=style)
 
     if list is not None:
         for i in range(len(list)):
-            _console.print(f'{i}. {list[i]}', style="green")
+            _console.print(f'{i}. {list[i]}', style=style)
 
 def py_error_handler(filename, line, function, err, fmt):
     return

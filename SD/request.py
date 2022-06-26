@@ -222,6 +222,19 @@ class RequestNode:
                     self._requests_list.remove(addr)
             time.sleep(1) 
 
+    def check_if_exist(self, path):
+        music_data_node = get_music_data_instance(self.music_data_address)
+        
+        if music_data_node is None:
+            print(f"ERROR: Missing connection to server {self.music_data_address}")
+            return False
+        
+        if music_data_node.contain_song(path):
+            print(f"ERROR: The song {path} is already exist")
+            return True
+
+        return False
+
     def put_song_in_music_data(self, path, client_conn):
         print("PUT SONG IN MUSIC DATA REQUEST")
         # host_ip_client, _ = client_address.split(':')
@@ -238,15 +251,14 @@ class RequestNode:
             print(f"ERROR: Missing connection to server {self.music_data_address}")
             return
         
-        if music_data_node.contain_song(path):
-            print(f"ERROR: The song {path} is already exist")
-            return 
+        # if music_data_node.contain_song(path):
+        #     print(f"ERROR: The song {path} is already exist")
+        #     return 
 
         host_ip, _ = self.music_data_address.split(':')
         CHUNK_SIZE = 5 * 1024
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            # s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((host_ip, 0))
             
             time.sleep(1)
@@ -257,13 +269,11 @@ class RequestNode:
             conn, _ = s.accept()
 
             if conn:
-                print("BBBBBBBBBBBBBBBBBBBBBBBBBBB")
                 data = request_socket.recv(CHUNK_SIZE)
 
                 while data:
                     conn.sendall(data)
                     data = request_socket.recv(CHUNK_SIZE)
-                    print(data)
                     if data == b'':
                         print('FINISH RECV UPLOAD SONG TO RESEND TO MUSIC DATA')
                         request_socket.close()
