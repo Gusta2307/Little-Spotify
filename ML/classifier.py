@@ -1,6 +1,9 @@
 import numpy as np
 from sklearn.svm import SVC
+from sklearn import metrics
+from sklearn.cluster import KMeans
 from sklearn.naive_bayes import GaussianNB
+from sklearn_extra.cluster import KMedoids
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
@@ -165,3 +168,65 @@ class Keras:
         self.history = model.fit(X_train, y_train, validation_split=validation, epochs=epochs, batch_size=batch, verbose=0)
         loss, accuracy = model.evaluate(X_test, y_test)
         return accuracy, loss
+
+
+class KMeansClustering:
+    def __init__(self, n_clusters=15) -> None:
+        self.n_clusters = n_clusters
+        self.clusters = {}  # dict <key=cluster, value=song>
+
+
+    def kmeans(self, X, n_init=3, init='random', tol=1e-4, random_state=170, verbose=False):
+        model = KMeans(n_clusters=self.n_clusters,
+                        n_init=n_init,
+                        init=init,
+                        tol=tol, 
+                        random_state=random_state,
+                        verbose=verbose).fit(X)
+
+        self.y_pred = model.predict(X)
+        self.build_clusters(model.labels_)
+
+
+    def evaluate(self, X, y):
+        homogeneity = metrics.homogeneity_score(y, self.y_pred)
+        completeness = metrics.completeness_score(y, self.y_pred)
+        s_mean = metrics.silhouette_score(X, self.y_pred)
+        return homogeneity, completeness, s_mean
+
+
+    def build_clusters(self, list_clusters):
+        for i in range(self.n_clusters):
+            self.clusters[i + 1] = []
+
+        for i in range(len(list_clusters)):
+            cluster = list_clusters[i] + 1
+            self.clusters[cluster].append(i + 1)
+
+
+class KMedoidsClustering:
+    def __init__(self, n_clusters=15) -> None:
+        self.clusters = {}
+        self.n_clusters = n_clusters
+
+
+    def kmedoids(self, X, init='random', random_state=127, verbose=False):
+        kmedoids = KMedoids(self.n_clusters, init=init, random_state=random_state).fit(X)
+        self.y_pred = kmedoids.predict(X)
+        self.build_clusters(kmedoids.labels_)
+
+
+    def evaluate(self, X, y):
+        homogeneity = metrics.homogeneity_score(y, self.y_pred)
+        completeness = metrics.completeness_score(y, self.y_pred)
+        s_mean = metrics.silhouette_score(X, self.y_pred)
+        return homogeneity, completeness, s_mean
+
+
+    def build_clusters(self, list_clusters):
+        for i in range(self.n_clusters):
+            self.clusters[i + 1] = []
+
+        for i in range(len(list_clusters)):
+            cluster = list_clusters[i] + 1
+            self.clusters[cluster].append(i + 1)
