@@ -89,7 +89,7 @@ class RequestNode:
                 
                 music_node = get_music_data_instance(md)
 
-                port = music_node.send_music_data(music_name, duration)
+                port, duration = music_node.send_music_data(music_name, duration)
 
                 server_socket = socket.socket()
                 c_host_ip, _ = self.address.split(':')
@@ -102,7 +102,9 @@ class RequestNode:
                 t2.start()
                 t3.start()
 
-                return server_socket.getsockname()[1]
+
+                print("duration: ", duration)
+                return server_socket.getsockname()[1], int(duration)
             except:
                 continue
         

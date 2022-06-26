@@ -1,11 +1,16 @@
 import Pyro4
 import hashlib
+import rich
+from pydub import AudioSegment
+from rich import console
+from cfonts import render
 
 TAG = {
     0: "title",
     1: "genre",
     2: "artist"
 }
+
 
 def get_chord_node_instance(id):
     return get_proxy(f'CHORD{id}')
@@ -41,26 +46,23 @@ def hashing(bits, string):
     except:
         return None
 
-# convert mp3 to wav
-# from pydub import AudioSegment
 
-# s = AudioSegment.from_mp3("Glass Animals - Heat Waves.mp3")
-# s.export("Glass Animals - Heat Waves.wav", format="wav")
+def init_client():
+    output1 = render('LITTLE SPOTIFY', colors=['green', 'cyan'], align='center', font='block')
+    print(output1)
 
-# import wave
-# wf = wave.open('./MD1/Glass Animals - Heat Waves.wav', 'rb')
-# print(wf.getnframes())
+def get_duration(file):
+    return int(AudioSegment.from_file(file).duration_seconds)
 
-import os, re, stagger
-def find_song_by_genre(genre, path):
-    print("GENRE")
-    _songs = []
-    for mn in os.listdir(path):
-        print(os.path.join(path, mn))
-        mp3 = stagger.read_tag(os.path.join(path, mn))
-        print(mp3.title, mp3.genre)
-        if re.search(genre, mp3.genre):
-            _songs.append(mn)
-    return _songs
+def view_console(msg, list=None):
+    rich.console.Console().clear()
+    init_client()
+    _console = console.Console()
+    _console.print(f'{msg}', style="green")
 
-# find_song_by_genre('pop', '/home/gustavo/Desktop/Little-Spotify/SD/MD1')
+    if list is not None:
+        for i in range(len(list)):
+            _console.print(f'{i}. {list[i]}', style="green")
+
+def py_error_handler(filename, line, function, err, fmt):
+    return

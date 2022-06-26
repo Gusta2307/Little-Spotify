@@ -17,7 +17,8 @@ from utils import (
     hashing, 
     get_music_data_instance, 
     get_chord_node_instance,
-    TAG
+    TAG,
+    get_duration
 )
 from random import randint
 
@@ -140,15 +141,13 @@ class MusicDataNode:
         port = server_socket.getsockname()[1]
         t1 = threading.Thread(target=self._send_frames, args=([server_socket, music_name, host_ip, port, _start]))
         t1.start()
-        return port
+        return port, get_duration(os.path.join(self.path, music_name))
 
     def _send_frames(self, server_socket, music_name, r_ip, port, _start=0):
         server_socket.listen(5)
         CHUNK = 1024
-        # wf = wave.open(os.path.join(self.path, music_name), 'rb')
 
         music_file = AudioSegment.from_file(os.path.join(self.path, music_name))
-
         _slice = 10
         start = _start
         end = start + _slice
@@ -162,8 +161,7 @@ class MusicDataNode:
             if client_socket:
                 while True:
                     try:
-                        data = music_file[start*1000:end*1000]._data#.decode('UTF-8')
-                        # print(data)
+                        data = music_file[start*1000:end*1000]._data
                         a = pickle.dumps(data)
                         message = struct.pack("Q",len(a))+a
                         client_socket.sendall(message)
