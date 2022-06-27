@@ -127,9 +127,13 @@ class MusicDataNode:
     def find_song(self, tag, type_tag):
         _songs = []
         print(tag, type_tag)
+        if type_tag == 3: #See all
+            return os.listdir(self.path)
         for mn in os.listdir(self.path):
             mp3 = stagger.read_tag(os.path.join(self.path, mn))
-            print("ABC", getattr(mp3, TAG[type_tag]))
+            # Put genre with ML
+            # if TAG[type_tag] == TAG[1] and str(getattr(mp3, TAG[type_tag])) == "":
+            #     mp3.genre = Igualar a el genero que infiere el clasificador
             if re.search(str(tag).lower(), str(getattr(mp3, TAG[type_tag])).lower()):
                 _songs.append(mn)
         return _songs

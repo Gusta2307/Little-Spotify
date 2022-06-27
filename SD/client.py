@@ -8,6 +8,7 @@ import struct
 import pickle
 from pynput import keyboard as kb
 import rich
+from rich import console
 from rich.progress import Progress
 import os
 from utils import (
@@ -46,13 +47,14 @@ class ClientNode:
             try:
                 if options == 0:
                     view_console("Select search form:", [
-                        'Name', 'Genre', 'Artist'])
+                        'Name', 'Genre', 'Artist', 'See all'])
                     tag = int(input())
-
-                    view_console(f"Enter {TAG[tag]}: ")
-                    song_name = input()
+                    song_name = ''
+                    if tag != 3:
+                        view_console(f"Enter {TAG[tag]}: ")
+                        song_name = input()
                     responses_song = r_node.request_response(song_name, tag)
-                    count = 0
+                    # count = 0
                     if responses_song:
                         # for s in responses_song.keys():
                         #     print(f"{count}. {s}")
@@ -180,7 +182,6 @@ class ClientNode:
 
     def upload_song(self, path):
         if os.path.exists(path):
-            print("UPLOAD")
             self.send_upload_song(path)
             # send_up_song = threading.Thread(
             #     target=self.send_upload_song, args=([path]))
@@ -194,44 +195,55 @@ class ClientNode:
             # print('Se ha pulsado la tecla ' + str(tecla), self.is_paused)
 
     def send_upload_song(self, path):
-        r_node = get_request_node_instance(self.request_node_address)
-        if r_node is None:
-            print(
-                f"ERROR: Missing connection to server {self.request_node_address}")
-            return
+        try:
+            r_node = get_request_node_instance(self.request_node_address)
+            if r_node is None:
+                print(
+                    f"ERROR: Missing connection to server {self.request_node_address}")
+                return
 
-        host_ip, _ = self.address.split(':')
-        CHUNK_SIZE = 5 * 1024
-        size = os.path.getsize(path)
-        view_console(str(path).split('/')[-1])
-        with Progress() as progress:
-            song_progress = progress.add_task(
-                "[green]Uploading...", total=size)
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-                s.bind((host_ip, 0))
-                time.sleep(1)
-                replicate_recv_thread = threading.Thread(target=r_node.put_song_in_music_data, args=(
-                    [path.split('/')[-1], (host_ip, s.getsockname()[1])]))
-                replicate_recv_thread.start()
+            host_ip, _ = self.address.split(':')
+            CHUNK_SIZE = 5 * 1024
+            size = os.path.getsize(path)
+            view_console(str(path).split('/')[-1])
+            with Progress() as progress:
+                song_progress = progress.add_task(
+                    "[green]Preparing...", total=size)
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+                    s.bind((host_ip, 0))
+                    time.sleep(1)
+                    if not r_node.check_if_exist(path.split('/')[-1]):
+                        replicate_recv_thread = threading.Thread(target=r_node.put_song_in_music_data, args=(
+                            [path.split('/')[-1], (host_ip, s.getsockname()[1])]))
+                        replicate_recv_thread.start()
+                    else:
+                        progress.update(song_progress, advance=0, description="[red]ERROR: Song already exists...")
+                        time.sleep(3)
+                        return
 
-                s.listen(1)
-                conn, _ = s.accept()
-                with conn:
-                    with open(path, 'rb') as f:
-                        
-                        data = f.read(CHUNK_SIZE)
-                        while data:
-                            progress.update(song_progress, advance=CHUNK_SIZE)
-                            conn.sendall(data)
+                    s.listen(1)
+                    conn, _ = s.accept()
+                    with conn:
+                        with open(path, 'rb') as f:
+                            
                             data = f.read(CHUNK_SIZE)
-                            if data == b'':
-                                conn.close()
-                                f.close()
-                                progress.update(song_progress, advance=CHUNK_SIZE, description="[green]Finish...")
-                                time.sleep(2)
-                                break
-                s.close()
+                            while data:
+                                progress.update(song_progress, advance=CHUNK_SIZE, description="[green]Uploading...")
+                                conn.sendall(data)
+                                data = f.read(CHUNK_SIZE)
+                                if data == b'':
+                                    conn.close()
+                                    f.close()
+                                    progress.update(song_progress, advance=CHUNK_SIZE, description="[green]Finish...")
+                                    time.sleep(2)
+                                    break
+                    s.close()
+        except:
+            view_console("ERROR: Uploading song", style="red")
+            progress.update(song_progress, advance=0, description="[red]Error...")
+            time.sleep(3)
+
 
     def connect_to_server(self):
         for r_node in self._request_node_list:
@@ -286,7 +298,6 @@ def main(address, r_address, path=None):
     # ns.register(f'CLIENT{address}', uri)
 
 # ? <MY_ADD> <R_ADD>
-
 
 if __name__ == '__main__':
     if len(sys.argv) == 3:

@@ -5,7 +5,6 @@ from sklearn.cluster import KMeans
 from sklearn.naive_bayes import GaussianNB
 from sklearn_extra.cluster import KMedoids
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from tensorflow.keras import Sequential, layers
 from sklearn.model_selection import StratifiedShuffleSplit
@@ -73,7 +72,7 @@ def ID3(X, y, groups, n_splits=3, clf=DecisionTreeClassifier):
 
     st = StratifiedShuffleSplit(n_splits=n_splits)
     splits = st.split(X, y, groups)
-    model = clf()
+    model = clf(criterion='entropy')
     
     for train_idx, val_idx in splits:
         X_tr = X.loc[train_idx]
