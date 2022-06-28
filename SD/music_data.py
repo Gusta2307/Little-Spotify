@@ -14,9 +14,7 @@ import wave
 # from tinytag import TinyTag
 from pydub import AudioSegment
 from utils import (
-    hashing, 
     get_music_data_instance, 
-    get_chord_node_instance,
     TAG,
     get_duration
 )
@@ -25,11 +23,8 @@ from random import randint
 
 @Pyro4.expose
 class MusicDataNode:
-    def __init__(self, address, chord_address, m, path):
+    def __init__(self, address, path):
         self.address = address
-        self.chord_id = hashing(m, chord_address)
-        self.chord_successors_list = []
-        self.m = m
         self.path = path
     
     @property
@@ -65,16 +60,6 @@ class MusicDataNode:
                 return False
         return True
 
-    def update_chord_successors_list(self):
-        while True:
-            node = get_chord_node_instance(self.chord_id)
-            if node is not None:
-                try:
-                    self.chord_successors_list = node.successors_list
-                except:
-                    pass
-            time.sleep(1)  
-
     def update_music_data_list(self):
         while True:
             list = self._music_data_list
@@ -87,40 +72,22 @@ class MusicDataNode:
     def print_node_info(self):
         while True:
             print(f'\nAddress: {self.address}\
-                    \nChord node: {self.chord_id}\
-                    \nChord node successors list: {self.chord_successors_list}\
                     \nMusic_Data list: {self.music_data_list}')
             time.sleep(10)   
     
     def get_music(self, tag, type_tag):
         songs = []
         while True:
-            chord_node = get_chord_node_instance(self.chord_id)
-            if chord_node is None:
-                chord_node = self.change_chord_node()
-                
             try:
-                query_hash = hashing(self.m, tag)
-                if query_hash is None:
-                    print("ERROR")
-                    return songs
-                #songs = chord_node.get_value(query_hash, genre)
-                songs= None
-                if songs is None:
+                if songs == []:
                     songs = self.find_song(tag, type_tag)
-                    if songs != []:
-                        chord_node.save_key(query_hash, (tag, songs))
-                    else:
+                    if songs == []:
                         print("No se encontro la cancion solicitada")
                         return songs
-                    
                 return songs
             except Exception as e:
                 print(e)
                 break
-                # if not self.chord_successors_list:
-                #     print(f'Error: Could not connect with chord node {self.chord_id}')
-                #     break
         return songs
 
 
@@ -262,7 +229,7 @@ class MusicDataNode:
             print(f'SONG {song_name} UPLOADED TO {self.address}')
             s.close()
 
-def main(address, md_address, chord_address, bits, path):
+def main(address, md_address, path):
     host_ip, host_port = address.split(':')
     try:
         daemon = Pyro4.Daemon(host=host_ip, port=int(host_port))
@@ -270,7 +237,7 @@ def main(address, md_address, chord_address, bits, path):
         print('Error: There is another node in the system with that address, please try another')
         return
     
-    node = MusicDataNode(address, chord_address, bits, path)
+    node = MusicDataNode(address, path)
     uri = daemon.register(node)
     ns = Pyro4.locateNS()
     ns.register(f'MUSIC_DATA{address}', uri)
@@ -278,9 +245,6 @@ def main(address, md_address, chord_address, bits, path):
     if node.join(md_address):
         request_thread = threading.Thread(target=daemon.requestLoop)
         request_thread.start()
-        
-        chord_sucessor_list_thread = threading.Thread(target=node.update_chord_successors_list)
-        chord_sucessor_list_thread.start()
         
         musicdata_node_list_thread = threading.Thread(target=node.update_music_data_list)
         musicdata_node_list_thread.start()
@@ -297,9 +261,9 @@ def main(address, md_address, chord_address, bits, path):
 
 if __name__ == '__main__':
     print(sys.argv)
-    if len(sys.argv) == 5:
-        main(sys.argv[1], None, sys.argv[2], int(sys.argv[3]), sys.argv[4])
-    elif len(sys.argv) == 6:
-        main(sys.argv[1], sys.argv[2], sys.argv[3], int(sys.argv[4]), sys.argv[5]) 
+    if len(sys.argv) == 3:
+        main(sys.argv[1], None, sys.argv[2])
+    elif len(sys.argv) == 4:
+        main(sys.argv[1], sys.argv[2], sys.argv[3])
     else:
         print('Error: Missing arguments')
