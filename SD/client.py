@@ -44,32 +44,32 @@ class ClientNode:
                          ['Play music.', 'Upload music'])
 
             options = int(input())
-            try:
-                if options == 0:
-                    view_console("Select search form:", [
-                        'Name', 'Genre', 'Artist', 'See all'])
-                    tag = int(input())
-                    song_name = ''
-                    if tag != 3:
-                        view_console(f"Enter {TAG[tag]}: ")
-                        song_name = input()
-                    responses_song = r_node.request_response(song_name, tag)
-                    # count = 0
-                    if responses_song:
-                        # for s in responses_song.keys():
-                        #     print(f"{count}. {s}")
-                        #     count += 1
-                        view_console("Enter song index: ",
-                                     list(responses_song.keys()))
-                        index = int(input())
-                        self.recv_music(responses_song[list(responses_song.keys())[
-                                        index]], list(responses_song.keys())[index])
-                elif options == 1:
-                    view_console("Enter path of song: ")
-                    path_song = input()
-                    self.upload_song(path_song)
-            except:
-                print("Somenthig went wrong! :/")
+            # try:
+            if options == 0:
+                view_console("Select search form:", [
+                    'Name', 'Genre', 'Artist', 'See all'])
+                tag = int(input())
+                song_name = ''
+                if tag != 3:
+                    view_console(f"Enter {TAG[tag]}: ")
+                    song_name = input()
+                responses_song = r_node.request_response(song_name, tag)
+                # count = 0
+                if responses_song:
+                    # for s in responses_song.keys():
+                    #     print(f"{count}. {s}")
+                    #     count += 1
+                    view_console("Enter song index: ",
+                                list(responses_song.keys()))
+                    index = int(input())
+                    self.recv_music(responses_song[list(responses_song.keys())[
+                                    index]], list(responses_song.keys())[index])
+            elif options == 1:
+                view_console("Enter path of song: ")
+                path_song = input()
+                self.upload_song(path_song)
+            # except Exception as e:
+            #     print("Somenthig went wrong! :/", e)
 
     def recv_music(self, md_add, music_name):
         # try:
@@ -112,20 +112,25 @@ class ClientNode:
             escuchador.start()
             while True:
                 while not self.is_paused:
-                    try:
+                    # try:
                         try:
                             r_node.ping()
                         except:
+                            progress.update(song_progress, advance=0,
+                                    description="[yellow]Reconnecting...")
                             if self.connect_to_server():
                                 client_socket.close()
                                 client_socket = socket.socket(
                                     socket.AF_INET, socket.SOCK_STREAM)
                                 r_node = get_request_node_instance(
                                     self.request_node_address)
-                                port = r_node.play_song(
+                                port, _ = r_node.play_song(
                                     md_add, music_name, current_duration)
+                                print((self.request_node_address.split(':')[0], port))
                                 client_socket.connect(
                                     (self.request_node_address.split(':')[0], port))
+                                data = b""
+                                # time.sleep(2)
                             else:
                                 print("ERROR: Missing connection with server.")
                                 return
@@ -153,6 +158,11 @@ class ClientNode:
                         # if not self.is_paused:
                         frame_data = data[:msg_size]
                         data = data[msg_size:]
+                        if frame_data == b'':
+                            stream.close()
+                            client_socket.close()
+                            escuchador.stop()
+                            break
                         frame = pickle.loads(frame_data)
                         stream.write(frame)
 
@@ -164,12 +174,13 @@ class ClientNode:
                             is_done = True
                             break
 
-                    except Exception as e:
-                        is_done = True
-                        stream.close()
-                        client_socket.close()
-                        print(f"Break {e}")
-                        break
+                    # except Exception as e:
+                    #     is_done = True
+                    #     stream.close()
+                    #     client_socket.close()
+                    #     escuchador.stop()
+                    #     print(f"Break {e}")
+                    #     break
                 progress.update(song_progress, advance=0,
                                 description="[red]Stopping...")
                 if is_done:
@@ -258,7 +269,7 @@ class ClientNode:
                     print("A")
                     return True
             except Exception as e:
-                print(f"ERROR: Can't connect to {r_node}\n{e}")
+                print(f"ERROR: Can't connect to {r_node}. {e}")
         print("ERROR: Can't connect to any requests node.")
         return False
 

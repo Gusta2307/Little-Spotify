@@ -57,7 +57,7 @@ def get_duration(file):
 import os
 def view_console(msg, list=None, style="green"):
     # rich.console.Console().
-    os.system('clear')
+    # os.system('clear')
     init_client()
     _console = console.Console()
     _console.print(f'{msg}', style=style)
@@ -68,3 +68,7 @@ def view_console(msg, list=None, style="green"):
 
 def py_error_handler(filename, line, function, err, fmt):
     return
+
+
+abc = 'páááp'
+print(abc)
