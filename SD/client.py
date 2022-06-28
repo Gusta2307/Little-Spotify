@@ -141,7 +141,9 @@ class ClientNode:
                             packet = client_socket.recv(4*1024)  # 4K
                             current_duration += CHUNK/44100
                             if not packet:
-                                break
+                                client_socket.close()
+                                escuchador.stop()
+                                return
                             data += packet
 
                         _packed_msg_size = data[:payload_size]
@@ -153,7 +155,9 @@ class ClientNode:
                             data += _data
                             current_duration += CHUNK/44100
                             if _data == b'':
-                                break
+                                client_socket.close()
+                                escuchador.stop()
+                                return
 
                         # if not self.is_paused:
                         frame_data = data[:msg_size]
@@ -162,7 +166,7 @@ class ClientNode:
                             stream.close()
                             client_socket.close()
                             escuchador.stop()
-                            break
+                            return
                         frame = pickle.loads(frame_data)
                         stream.write(frame)
 

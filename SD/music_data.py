@@ -249,8 +249,8 @@ def main(address, md_address, path):
         musicdata_node_list_thread = threading.Thread(target=node.update_music_data_list)
         musicdata_node_list_thread.start()
         
-        # print_thread = threading.Thread(target = node.print_node_info)
-        # print_thread.start()
+        print_thread = threading.Thread(target = node.print_node_info)
+        print_thread.start()
     
     else:
         print(f'Error: Could not connect to the network, no music data with address: {md_address}')

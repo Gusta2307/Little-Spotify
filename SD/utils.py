@@ -69,6 +69,3 @@ def view_console(msg, list=None, style="green"):
 def py_error_handler(filename, line, function, err, fmt):
     return
 
-
-abc = 'páááp'
-print(abc)
