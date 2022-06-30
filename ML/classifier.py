@@ -28,6 +28,7 @@ def KNN(X, y, groups, n_splits=3, n_neighbors=5, weights='distance'):
         X_val = X.loc[val_idx]
         y_val = y.loc[val_idx]
         
+        y_tr = np.ravel(y_tr)
         model.fit(X_tr, y_tr)
         score = model.score(X_val, y_val)
         values.append(score)
@@ -55,6 +56,7 @@ def Naive_Bayer(X, y, groups, n_splits=3):
         X_val = X.loc[val_idx]
         y_val = y.loc[val_idx]
 
+        y_tr = np.ravel(y_tr)
         model.fit(X_tr, y_tr)
         score = model.score(X_val, y_val)
         values.append(score)
@@ -83,6 +85,7 @@ def ID3(X, y, groups, n_splits=3, clf=DecisionTreeClassifier):
         X_val = X.loc[val_idx]
         y_val = y.loc[val_idx]
 
+        y_tr = np.ravel(y_tr)
         model.fit(X_tr, y_tr)
         score = model.score(X_val, y_val)
         values.append(score)
@@ -110,6 +113,7 @@ def SVM(X, y, groups, n_splits=3, kernel='rbf', decision='ovo', weight='balanced
         X_val = X.loc[val_idx]
         y_val = y.loc[val_idx]
 
+        y_tr = np.ravel(y_tr)
         model.fit(X_tr, y_tr)
         score = model.score(X_val, y_val)
         values.append(score)
@@ -142,6 +146,7 @@ class Keras:
             X_val = X.loc[val_idx]
             y_val = y.loc[val_idx]
             
+            y_tr = np.ravel(y_tr)
             accuray, _ = self.classification(X_tr, X_val, y_tr, y_val)
             values.append(accuray)
 
@@ -167,8 +172,6 @@ class Keras:
                       metrics=['accuracy'])
                 
         self.history = model.fit(X_train, y_train, validation_split=validation, epochs=epochs, batch_size=batch, verbose=0)
-        p = model.predict(X_test)
-        print("Predict: ", p)
         loss, accuracy = model.evaluate(X_test, y_test)
         return accuracy, loss
 
