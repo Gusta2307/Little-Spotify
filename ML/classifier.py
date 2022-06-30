@@ -5,6 +5,7 @@ from sklearn.cluster import KMeans
 from sklearn.naive_bayes import GaussianNB
 from sklearn_extra.cluster import KMedoids
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from tensorflow.keras import Sequential, layers
 from sklearn.model_selection import StratifiedShuffleSplit
@@ -34,7 +35,7 @@ def KNN(X, y, groups, n_splits=3, n_neighbors=5, weights='distance'):
         if best_value < score:
             best_value = score
             best_partition = (X_tr, y_tr)
-    
+
     return best_value, best_partition, np.mean(values)
 
 
@@ -164,8 +165,10 @@ class Keras:
         model.summary()
         model.compile(optimizer='adam', loss='sparse_categorical_crossentropy',
                       metrics=['accuracy'])
-        
+                
         self.history = model.fit(X_train, y_train, validation_split=validation, epochs=epochs, batch_size=batch, verbose=0)
+        p = model.predict(X_test)
+        print("Predict: ", p)
         loss, accuracy = model.evaluate(X_test, y_test)
         return accuracy, loss
 
