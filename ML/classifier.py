@@ -6,7 +6,7 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn_extra.cluster import KMedoids
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
-from tensorflow.keras import Sequential, layers
+# from tensorflow.keras import Sequential, layers
 from sklearn.model_selection import StratifiedShuffleSplit
 
     

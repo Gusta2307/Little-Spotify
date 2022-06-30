@@ -247,6 +247,8 @@ Después de haber probado diferentes algoritmos con varias modificaciones podemo
 
 Por otro lado, SVM no parece ser un mal algoritmo para clasificar canciones según el género, solo que creamos que necesita más datos, los cuales nos son difíciles de obtener; por lo que nos quedamos con Keras que tiene una efectividad de 0.65, que es muy similar a la de SVM pero la curva de aprendizaje se comporta mejor.
 
+
+### 
 ## Bibliografía
 
 - [Procesando audio con Python](https://programmerclick.com/article/4979571746/)
