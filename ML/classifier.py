@@ -5,6 +5,7 @@ from sklearn.cluster import KMeans
 from sklearn.naive_bayes import GaussianNB
 from sklearn_extra.cluster import KMedoids
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 # from tensorflow.keras import Sequential, layers
 from sklearn.model_selection import StratifiedShuffleSplit
@@ -27,6 +28,7 @@ def KNN(X, y, groups, n_splits=3, n_neighbors=5, weights='distance'):
         X_val = X.loc[val_idx]
         y_val = y.loc[val_idx]
         
+        y_tr = np.ravel(y_tr)
         model.fit(X_tr, y_tr)
         score = model.score(X_val, y_val)
         values.append(score)
@@ -34,7 +36,7 @@ def KNN(X, y, groups, n_splits=3, n_neighbors=5, weights='distance'):
         if best_value < score:
             best_value = score
             best_partition = (X_tr, y_tr)
-    
+
     return best_value, best_partition, np.mean(values)
 
 
@@ -54,6 +56,7 @@ def Naive_Bayer(X, y, groups, n_splits=3):
         X_val = X.loc[val_idx]
         y_val = y.loc[val_idx]
 
+        y_tr = np.ravel(y_tr)
         model.fit(X_tr, y_tr)
         score = model.score(X_val, y_val)
         values.append(score)
@@ -82,6 +85,7 @@ def ID3(X, y, groups, n_splits=3, clf=DecisionTreeClassifier):
         X_val = X.loc[val_idx]
         y_val = y.loc[val_idx]
 
+        y_tr = np.ravel(y_tr)
         model.fit(X_tr, y_tr)
         score = model.score(X_val, y_val)
         values.append(score)
@@ -109,6 +113,7 @@ def SVM(X, y, groups, n_splits=3, kernel='rbf', decision='ovo', weight='balanced
         X_val = X.loc[val_idx]
         y_val = y.loc[val_idx]
 
+        y_tr = np.ravel(y_tr)
         model.fit(X_tr, y_tr)
         score = model.score(X_val, y_val)
         values.append(score)
@@ -141,6 +146,7 @@ class Keras:
             X_val = X.loc[val_idx]
             y_val = y.loc[val_idx]
             
+            y_tr = np.ravel(y_tr)
             accuray, _ = self.classification(X_tr, X_val, y_tr, y_val)
             values.append(accuray)
 
@@ -164,7 +170,7 @@ class Keras:
         model.summary()
         model.compile(optimizer='adam', loss='sparse_categorical_crossentropy',
                       metrics=['accuracy'])
-        
+                
         self.history = model.fit(X_train, y_train, validation_split=validation, epochs=epochs, batch_size=batch, verbose=0)
         loss, accuracy = model.evaluate(X_test, y_test)
         return accuracy, loss

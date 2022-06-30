@@ -10,22 +10,22 @@ if __name__ == '__main__':
     # path = input()
     # dataset_name = input()
     # create_data(path, dataset_name)
- 
+
     data = pd.read_csv('data-15 genres-final.csv')
     
     X, y, groups = get_X_y(data)
     X = scaler_data(X)
     y, _ = encode_names(y)
-
-    # Xdf = pd.DataFrame(X)
-    # ydf = pd.DataFrame(y)
     
-    # keras = Keras()
-    # nb_score, nb_partition, nb_mean = Naive_Bayer(Xdf, ydf, groups)
-    # id3_score, id3_partition, id3_mean = ID3(Xdf, ydf, groups)
-    # id31_score, id31_partition, id31_mean = ID3(Xdf, ydf, groups, 3, RandomForestClassifier)
-    # knn_score, knn_partition, knn_mean = KNN(Xdf, ydf, groups)
-    # svm_score, svm_partition, svm_mean = SVM(Xdf, ydf, groups)
+    Xdf = pd.DataFrame(X)
+    ydf = pd.DataFrame(y)
+    
+    keras = Keras()
+    nb_score, nb_partition, nb_mean = Naive_Bayer(Xdf, ydf, groups)
+    id3_score, id3_partition, id3_mean = ID3(Xdf, ydf, groups)
+    id31_score, id31_partition, id31_mean = ID3(Xdf, ydf, groups, 3, RandomForestClassifier)
+    knn_score, knn_partition, knn_mean = KNN(Xdf, ydf, groups)
+    svm_score, svm_partition, svm_mean = SVM(Xdf, ydf, groups)
     # keras_score, keras_partition, keras_mean, history = keras.evaluate(Xdf, ydf, groups)
 
     kmeans = KMeansClustering()
