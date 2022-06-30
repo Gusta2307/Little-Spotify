@@ -31,7 +31,7 @@ Existen dos posibles fallas en el sistema por desconexión de nodos, para los cu
 ## Parte de ML
 
 Adicionalmente se cuenta con un clasificador de canciones según su género que se realizó como proyecto de la asignatura de Aprendizaje de Máquinas. Luego cuando un cliente quiera filtrar canciones por su género, las que no contengan el metadato correspondiente se le asigna con la predicción de nuestro clasificador. 
-Para ver los detalles de la implementación y las características del clasificador diríjase [aquí]("https://github.com/Gusta2307/Little-Spotify/blob/main/ML/README.md").
+Para ver los detalles de la implementación y las características del clasificador diríjase [aquí](https://github.com/Gusta2307/Little-Spotify/blob/main/ML/README.md).
 
 
 ## Instrucciones para ejecutar el proyecto
