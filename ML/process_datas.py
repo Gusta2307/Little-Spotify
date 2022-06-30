@@ -98,8 +98,9 @@ def scaler_data(X):
 
 def encode_names(y):
     lb = LabelEncoder()
-    y = lb.fit_transform(y)
-    return y
+    _y = lb.fit_transform(y)
+    genre_dict = dict(set(zip(_y, y)))
+    return _y, genre_dict
 
 
 def encode_features(data, features):

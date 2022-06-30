@@ -1,5 +1,6 @@
 import Pyro4
 import hashlib
+import os
 import rich
 from pydub import AudioSegment
 from rich import console
@@ -51,13 +52,14 @@ def init_client():
     output1 = render('LITTLE SPOTIFY', colors=['green', 'cyan'], align='center', font='block')
     print(output1)
 
+
 def get_duration(file):
     return int(AudioSegment.from_file(file).duration_seconds)
 
-import os
+
 def view_console(msg, list=None, style="green"):
-    # rich.console.Console().
-    # os.system('clear')
+    # rich.console.Console().clear()
+    os.system('clear')
     init_client()
     _console = console.Console()
     _console.print(f'{msg}', style=style)
@@ -66,6 +68,6 @@ def view_console(msg, list=None, style="green"):
         for i in range(len(list)):
             _console.print(f'{i}. {list[i]}', style=style)
 
+
 def py_error_handler(filename, line, function, err, fmt):
     return
-

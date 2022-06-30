@@ -53,12 +53,9 @@ class ClientNode:
                 if tag != 3:
                     view_console(f"Enter {TAG[tag]}: ")
                     song_name = input()
+                view_console("Loading...")
                 responses_song = r_node.request_response(song_name, tag)
-                # count = 0
                 if responses_song:
-                    # for s in responses_song.keys():
-                    #     print(f"{count}. {s}")
-                    #     count += 1
                     view_console("Enter song index: ",
                                 list(responses_song.keys()))
                     index = int(input())

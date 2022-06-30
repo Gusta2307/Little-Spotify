@@ -8,10 +8,9 @@ import re
 import pickle
 import struct
 import socket
-import stagger
 import pyaudio
 import wave
-# from tinytag import TinyTag
+import eyed3 
 from pydub import AudioSegment
 from utils import (
     get_music_data_instance, 
@@ -20,12 +19,21 @@ from utils import (
 )
 from random import randint
 
+import sys
+sys.path.insert(1, '../ML')
+
+from genre_clasification import (
+    Genre_Clasf,
+    extract_carcteristics
+)
+
 
 @Pyro4.expose
 class MusicDataNode:
     def __init__(self, address, path):
         self.address = address
         self.path = path
+        self.genre_classifier = Genre_Clasf()
     
     @property
     def music_data_list(self):
@@ -97,11 +105,17 @@ class MusicDataNode:
         if type_tag == 3: #See all
             return os.listdir(self.path)
         for mn in os.listdir(self.path):
-            mp3 = stagger.read_tag(os.path.join(self.path, mn))
+            mp3 = eyed3.load(os.path.join(self.path, mn))
             # Put genre with ML
-            # if TAG[type_tag] == TAG[1] and str(getattr(mp3, TAG[type_tag])) == "":
-            #     mp3.genre = Igualar a el genero que infiere el clasificador
-            if re.search(str(tag).lower(), str(getattr(mp3, TAG[type_tag])).lower()):
+            print("TTTTTTTTT", mn, getattr(mp3.tag, TAG[type_tag]))
+            if TAG[type_tag] == TAG[1] and getattr(mp3.tag, TAG[type_tag]) == None:
+                print(f'{mn} no tiene genero')
+                mp3.tag.genre = self.genre_classifier.predict(extract_carcteristics(os.path.join(self.path, mn)))
+                print('ZZZZZZZZZZZZZZZZZZZZZZZ')
+                mp3.tag.save()
+                print(f'{mn} genero: {mp3.tag.genre}')
+            print("PPPPPPPP", str(getattr(mp3.tag, TAG[type_tag])).lower())
+            if re.search(str(tag).lower(), str(getattr(mp3.tag, TAG[type_tag])).lower()):
                 _songs.append(mn)
         return _songs
 
@@ -249,8 +263,8 @@ def main(address, md_address, path):
         musicdata_node_list_thread = threading.Thread(target=node.update_music_data_list)
         musicdata_node_list_thread.start()
         
-        print_thread = threading.Thread(target = node.print_node_info)
-        print_thread.start()
+        # print_thread = threading.Thread(target = node.print_node_info)
+        # print_thread.start()
     
     else:
         print(f'Error: Could not connect to the network, no music data with address: {md_address}')
