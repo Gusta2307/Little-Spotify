@@ -1,15 +1,7 @@
-import Pyro4
-import threading
-import pyaudio
-import time
-import wave
-import socket
-import struct
-import pickle
-import sys
+import Pyro4, socket, struct, pickle
+import sys, threading, time
 from utils import (
-    get_request_node_instance, 
-    get_music_data_instance,
+    get_node_instance, 
 )
 
 @Pyro4.expose
@@ -21,20 +13,38 @@ class RequestNode:
         
     @property
     def requests_list(self):
+        """
+            Lista de request conocidos
+        """
         return self._requests_list
     
     
     def ping(self):
+        """
+            Ping para verificar la conexion
+        """
         return True
     
     def add_requests(self, address):
+        """
+            Agrega un nuevo request a la lista de conocidos
+
+            address: direccion del request
+        """
+
         if address not in self._requests_list:
             self._requests_list.append(address)
     
     def join(self, request_address):
+        """
+            Agrega un nuevo nodo music data a la red
+
+            request_address: direccion del request
+        """
+
         self._requests_list = [self.address]
         if request_address is not None:
-            node = get_request_node_instance(request_address)
+            node = get_node_instance(request_address, 'REQUEST')
             if node is not None:
                 try:
                     list = node.requests_list
@@ -42,7 +52,7 @@ class RequestNode:
                         if addr == self.address:
                             continue
                         self._requests_list.append(addr)
-                        node = get_request_node_instance(addr)
+                        node = get_node_instance(addr, 'REQUEST')
                         if node is not None:
                             node.add_requests(self.address)
                 except:
@@ -53,40 +63,44 @@ class RequestNode:
     
 
     def request_response(self, tag, _type):
+        """
+            Dada respuesta a una consulta del usuario
+
+            tag: consulta del usuario
+            _type: tipo de la consulta
+        """
+
         result = dict()
-        print(self.music_data_list)
         for md_add in self.music_data_list:
             try:
-                print(self.music_data_list)
-                print(md_add)
-                music_node = get_music_data_instance(md_add)
+                music_node = get_node_instance(md_add, 'MUSIC_DATA')
                 song = music_node.get_music(tag, _type)
-                # if _type == "name":
-                #     song = music_node.get_music_by_name(tag)
-                # elif _type == "genre":
-                #     print("AAAA")
-                #     song = music_node.get_music_by_genre(tag)
-                # elif _type == "artist":
-                #     song = music_node.get_music_by_artist(tag)
-                print(song)
                 if song is not None and song != []:
                     for s in song:
                         if s in result.keys():
                             result[s].append(md_add)  
                         else:
                             result[s] = [md_add]
-                    
-                    #return md_add, song
             except:
                 continue
         return result
-                
-        
+
+
     def play_song(self, md_add, music_name, duration=0):
+        """
+        Busca la cancion en el music_data y la reproduce.
+        
+        Ordena crear una replica de la misma en los demas music_data que no la contengan
+
+        md_add: La direccion de music_data que se va leer la cancion
+        music_name: El nombre de la cancion 
+        duration: A partir de que instante se va a empezar a reproducir.
+        
+        """
         for md in md_add:
             try: 
                 
-                music_node = get_music_data_instance(md)
+                music_node = get_node_instance(md, 'MUSIC_DATA')
                 if md not in self.music_data_list:
                     self.music_data_list.append(md)
                 port, duration = music_node.send_music_data(music_name, duration)
@@ -100,7 +114,6 @@ class RequestNode:
                 t2.start()
                 t3.start()
 
-
                 return server_socket.getsockname()[1], int(duration)
             except:
                 continue
@@ -109,15 +122,22 @@ class RequestNode:
 
 
     def _recv_song_frames(self, md_add, port, server_socket, music_node, music_name):
+        """
+            Recibe y envia los frames de la cancion
+
+            md_add: direccion del music data
+            port: puerto de escucha del music data
+            server_socket: server socket del request por donde se envia la cancion al usuario
+            music_node: nodo del music data
+            music_name: nombre de la cancion
+        """
+        
         host_ip, _ = md_add.split(':')
 
         CHUNK = 1024
-        # create socket
         client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         socket_address = (host_ip, port)
-        # print('server listening at',socket_address)
         client_socket.connect(socket_address) 
-        # print("CLIENT CONNECTED TO",socket_address)
 
         server_socket.listen(5)
         
@@ -134,7 +154,7 @@ class RequestNode:
                     for md in self.music_data_list:
                         print(md)
                         try:
-                            temp_music_node = get_music_data_instance(md)
+                            temp_music_node = get_node_instance(md, 'MUSIC_DATA')
                             if temp_music_node.contain_song(music_name):
                                 _port = temp_music_node.send_music_data(music_name, int(current_duration))
                                 client_socket.close()
@@ -183,8 +203,12 @@ class RequestNode:
         client_socket.close()
 
     def update_music_data_list(self):
+        """
+            Mantiene actualizados el music data al que esta conectado
+        """
+
         while True:
-            node = get_music_data_instance(self.music_data_address)
+            node = get_node_instance(self.music_data_address, 'MUSIC_DATA')
             if node is not None:
                 try:
                     self.music_data_list = node.music_data_list
@@ -192,24 +216,32 @@ class RequestNode:
                     pass
             else:
                 for md in self.music_data_list[1:]:
-                    node = get_music_data_instance(md)
+                    node = get_node_instance(md, 'MUSIC_DATA')
                     if node is not None:
                         self.music_data_address = md
                         self.music_data_list = node.music_data_list
                         break
             time.sleep(1)  
     
-    def update_requests_list(self):
+    def update_requests_list(self):    
+        """
+            Actualiza la lista de request eliminando todos los nodos que se hayan desconectado
+        """
         while True:
             list = self._requests_list
             for addr in list:
-                node = get_request_node_instance(addr)
+                node = get_node_instance(addr, 'REQUEST')
                 if node is None:
                     self._requests_list.remove(addr)
             time.sleep(1) 
 
     def check_if_exist(self, path):
-        music_data_node = get_music_data_instance(self.music_data_address)
+        """ 
+        Verifica si el nodo el music_data esta conectado y contiene la cancion que se quiere
+        
+        path: ruta de la cancion
+        """
+        music_data_node = get_node_instance(self.music_data_address, 'MUSIC_DATA')
         
         if music_data_node is None:
             print(f"ERROR: Missing connection to server {self.music_data_address}")
@@ -222,22 +254,20 @@ class RequestNode:
         return False
 
     def put_song_in_music_data(self, path, client_conn):
-        # host_ip_client, _ = client_address.split(':')
-        request_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # socket_address = (host_ip_client, port_client)
-        # print('server listening at', client_address)
+        """
+            Recibe la nueva cancion que el cliente quiere subir y la guarda en el music_data correspondiente
 
+            path: ruta de la cancion
+            client_conn: ip y puerto por el cual el cliente recibe la cancion
+        """
+        request_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         request_socket.connect(client_conn)        
 
-        music_data_node = get_music_data_instance(self.music_data_address)
+        music_data_node = get_node_instance(self.music_data_address, 'MUSIC_DATA')
         
         if music_data_node is None:
             print(f"ERROR: Missing connection to server {self.music_data_address}")
             return
-        
-        # if music_data_node.contain_song(path):
-        #     print(f"ERROR: The song {path} is already exist")
-        #     return 
 
         host_ip, _ = self.music_data_address.split(':')
         CHUNK_SIZE = 5 * 1024
@@ -268,6 +298,9 @@ class RequestNode:
     
 
     def print_node_info(self):
+        """
+        Imprime en la consola la informacion del nodo
+        """
         while True:
             print(f'\nAddress: {self.address}\
                     \nMusic Data Node: {self.music_data_address}\

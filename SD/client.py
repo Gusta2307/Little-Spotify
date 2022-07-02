@@ -1,20 +1,10 @@
-import Pyro4
-import sys
-import time
-import pyaudio
-import threading
-import socket
-import struct
-import pickle
+import Pyro4, socket, pyaudio
+import os, sys, time, threading, struct, pickle
 from pynput import keyboard as kb
-import rich
-from rich import console
 from rich.progress import Progress
-import os
 from utils import (
-    get_request_node_instance,
+    get_node_instance,
     TAG,
-    init_client,
     view_console,
     py_error_handler
 )
@@ -27,11 +17,16 @@ class ClientNode:
         self.request_node_address = r_address
         self._request_node_list = []
         self.is_paused = False
+        self.is_running = False
 
     def run(self):
+        """
+            Run the client node.
+        """
+
         r_node = None
         try:
-            r_node = get_request_node_instance(self.request_node_address)
+            r_node = get_node_instance(self.request_node_address, 'REQUEST')
             if r_node.ping():
                 self._request_node_list = r_node.requests_list
                 print(f"Connected to {self.request_node_address}")
@@ -41,36 +36,46 @@ class ClientNode:
 
         while True:
             view_console("Welcome! What do you want to do?",
-                         ['Play music.', 'Upload music'])
+                         ['Play music', 'Upload music', 'Exit'])
 
-            options = int(input())
-            # try:
-            if options == 0:
-                view_console("Select search form:", [
-                    'Name', 'Genre', 'Artist', 'See all'])
-                tag = int(input())
-                song_name = ''
-                if tag != 3:
-                    view_console(f"Enter {TAG[tag]}: ")
-                    song_name = input()
-                view_console("Loading...")
-                responses_song = r_node.request_response(song_name, tag)
-                if responses_song:
-                    view_console("Enter song index: ",
-                                list(responses_song.keys()))
-                    index = int(input())
-                    self.recv_music(responses_song[list(responses_song.keys())[
-                                    index]], list(responses_song.keys())[index])
-            elif options == 1:
-                view_console("Enter path of song: ")
-                path_song = input()
-                self.upload_song(path_song)
-            # except Exception as e:
-            #     print("Somenthig went wrong! :/", e)
+            try:
+                options = int(input())
+                if options == 0:
+                    view_console("Select search form:", [
+                        'Name', 'Genre', 'Artist', 'See all'])
+                    tag = int(input())
+                    song_name = ''
+                    if tag != 3:
+                        view_console(f"Enter {TAG[tag]}: ")
+                        song_name = input()
+                    view_console("Loading...")
+                    responses_song = r_node.request_response(song_name, tag)
+                    if responses_song:
+                        view_console("Enter song index: ",
+                                    list(responses_song.keys()))
+                        index = int(input())
+                        self.recv_music(responses_song[list(responses_song.keys())[
+                                        index]], list(responses_song.keys())[index])
+                elif options == 1:
+                    view_console("Enter path of song: ")
+                    path_song = input()
+                    self.upload_song(path_song)
+                elif options == 2:
+                    self.is_running = False
+                    return
+            except:
+                print("Somenthig went wrong! :/")
 
     def recv_music(self, md_add, music_name):
+        """
+            Recibe la musica del request
+
+            md_add: lista de direcciones donde esta almacenada la cancion
+            music_name: nombre de la cancion
+        """
+
         # try:
-        r_node = get_request_node_instance(self.request_node_address)
+        r_node = get_node_instance(self.request_node_address, 'REQUEST')
         if r_node is None:
             print(
                 f"ERROR: Missing connection to server {self.request_node_address}")
@@ -109,7 +114,7 @@ class ClientNode:
             escuchador.start()
             while True:
                 while not self.is_paused:
-                    # try:
+                    try:
                         try:
                             r_node.ping()
                         except:
@@ -119,8 +124,8 @@ class ClientNode:
                                 client_socket.close()
                                 client_socket = socket.socket(
                                     socket.AF_INET, socket.SOCK_STREAM)
-                                r_node = get_request_node_instance(
-                                    self.request_node_address)
+                                r_node = get_node_instance(
+                                    self.request_node_address, 'REQUEST')
                                 port, _ = r_node.play_song(
                                     md_add, music_name, current_duration)
                                 print((self.request_node_address.split(':')[0], port))
@@ -175,13 +180,13 @@ class ClientNode:
                             is_done = True
                             break
 
-                    # except Exception as e:
-                    #     is_done = True
-                    #     stream.close()
-                    #     client_socket.close()
-                    #     escuchador.stop()
-                    #     print(f"Break {e}")
-                    #     break
+                    except Exception as e:
+                        is_done = True
+                        stream.close()
+                        client_socket.close()
+                        escuchador.stop()
+                        print(f"Break {e}")
+                        break
                 progress.update(song_progress, advance=0,
                                 description="[red]Stopping...")
                 if is_done:
@@ -190,26 +195,38 @@ class ClientNode:
 
             client_socket.close()
             escuchador.stop()
-            # print('Audio closed')
+
 
     def upload_song(self, path):
+        """
+            Sube una cancion al sistema
+
+            path: direccion de la cancion
+        """
+
         if os.path.exists(path):
             self.send_upload_song(path)
-            # send_up_song = threading.Thread(
-            #     target=self.send_upload_song, args=([path]))
-            # send_up_song.start()
         else:
             print("ERROR: Invalid path")
 
 
     def stopped(self, tecla):
+        """
+            Pausa la cancion utilizando la tecla del espacio
+        """
         if str(tecla) == 'Key.space':
             self.is_paused = not self.is_paused
             # print('Se ha pulsado la tecla ' + str(tecla), self.is_paused)
 
     def send_upload_song(self, path):
+        """
+            Envia la cancion al request
+
+            path: direccion de la cancion
+        """
+
         try:
-            r_node = get_request_node_instance(self.request_node_address)
+            r_node = get_node_instance(self.request_node_address, 'REQUEST')
             if r_node is None:
                 print(
                     f"ERROR: Missing connection to server {self.request_node_address}")
@@ -259,16 +276,18 @@ class ClientNode:
 
 
     def connect_to_server(self):
+        """
+            Conecta al cliente con el request
+        """
+
         for r_node in self._request_node_list:
             print(f"Trying connect to {r_node}")
             try:
-                node = get_request_node_instance(r_node)
+                node = get_node_instance(r_node, 'REQUEST')
                 if node.ping():
                     print(f"Connected to {r_node}")
                     self.request_node_address = r_node
-                    # ! hacer un merge
                     self._request_node_list = node.requests_list
-                    print("A")
                     return True
             except Exception as e:
                 print(f"ERROR: Can't connect to {r_node}. {e}")
@@ -276,9 +295,14 @@ class ClientNode:
         return False
 
     def check_connection(self):
-        while True:
+        """
+            Comprueba si el cliente esta conectado con el request
+        """
+
+        while self.is_running:
+            print(self.is_running)
             try:
-                node = get_request_node_instance(self.request_node_address)
+                node = get_node_instance(self.request_node_address, 'REQUEST')
                 node.ping()
             except:
                 print(
@@ -287,28 +311,16 @@ class ClientNode:
             time.sleep(1)
 
 
-def main(address, r_address, path=None):
-    # print("PATH", path)
+def main(address, r_address):
     node = ClientNode(address, r_address)
-    # print("RUN...")
     node.run()
+    node.is_running = True
     print("RUNNING")
-    check_connetion_thread = threading.Thread(target=node.check_connection)
+    check_connetion_thread = threading.Thread(target=node.check_connection, name="check_connection")
     check_connetion_thread.start()
 
-    connect_to_server_thread = threading.Thread(target=node.connect_to_server)
-    connect_to_server_thread.start()
-
-    # host_ip, host_port = address.split(':')
-    # try:
-    #     daemon = Pyro4.Daemon(host=host_ip, port=int(host_port))
-    # except:
-    #     print('Error: There is another node in the system with that address, please try another')
-    #     return
-
-    # uri = daemon.register(node)
-    # ns = Pyro4.locateNS()
-    # ns.register(f'CLIENT{address}', uri)
+    # connect_to_server_thread = threading.Thread(target=node.connect_to_server, name="connect_to_server")
+    # connect_to_server_thread.start()
 
 # ? <MY_ADD> <R_ADD>
 
@@ -322,6 +334,7 @@ if __name__ == '__main__':
         asound = cdll.LoadLibrary('libasound.so')
         # Set error handler
         asound.snd_lib_error_set_handler(c_error_handler)
+        
         main(sys.argv[1], sys.argv[2])
     else:
         print('Error: Missing arguments')

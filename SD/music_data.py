@@ -1,31 +1,19 @@
-import Pyro4
-import threading
-import os
-import sys
-import time
-import wave
-import re
-import pickle
-import struct
-import socket
-import pyaudio
-import wave
-import eyed3 
+import Pyro4, socket
+import threading, os, sys, time, re, pickle, struct, eyed3
 from pydub import AudioSegment
 from utils import (
-    get_music_data_instance, 
+    get_node_instance, 
     TAG,
     get_duration
 )
-from random import randint
 
-import sys
 sys.path.insert(1, '../ML')
 
 from genre_clasification import (
     Genre_Clasf,
     extract_carcteristics
 )
+
 
 
 @Pyro4.expose
@@ -37,29 +25,43 @@ class MusicDataNode:
     
     @property
     def music_data_list(self):
+        """
+            Obtiene la lista de music data conocidos
+        """
         return self._music_data_list 
     
     def ping(self):
+        """
+            Ping para verificar la conexion
+        """
         return True
 
     def add_music_data(self, address):
+        """
+            Agrega la dirrecion de un music data a la lista de music data conocidos
+
+            address: direccion del music data
+        """
         if address not in self._music_data_list:
             self._music_data_list.append(address)
         
     def join(self, music_address):
+        """
+            Agrega un nuevo nodo music data a la red
+
+            music_address: direccion del nuevo nodo
+        """
+
         self._music_data_list = [self.address]
         if music_address is not None:
-            node = get_music_data_instance(music_address)
-            print(node)
+            node = get_node_instance(music_address, 'MUSIC_DATA')
             if node is not None:
                 try:
                     list = node.music_data_list
-                    print(list)
                     for addr in list:
                         if addr == self.address:
                             continue
-                        self._music_data_list.append(addr)
-                        node = get_music_data_instance(addr)
+                        node = get_node_instance(addr, 'MUSIC_DATA')
                         if node is not None:
                             node.add_music_data(self.address)
                 except:
@@ -69,75 +71,98 @@ class MusicDataNode:
         return True
 
     def update_music_data_list(self):
+        """
+            Actualiza constantemente la lista de music data conocidos
+        """
         while True:
             list = self._music_data_list
             for addr in list:
-                node = get_music_data_instance(addr)
+                node = get_node_instance(addr, 'MUSIC_DATA')
                 if node is None:
                     self._music_data_list.remove(addr)
             time.sleep(1) 
     
     def print_node_info(self):
+        """
+            Imprime la informacion del nodo
+        """
         while True:
             print(f'\nAddress: {self.address}\
                     \nMusic_Data list: {self.music_data_list}')
             time.sleep(10)   
     
     def get_music(self, tag, type_tag):
-        songs = []
-        while True:
-            try:
-                if songs == []:
-                    songs = self.find_song(tag, type_tag)
-                    if songs == []:
-                        print("No se encontro la cancion solicitada")
-                        return songs
-                return songs
-            except Exception as e:
-                print(e)
-                break
-        return songs
+        """
+            Obtiene la lista de canciones que cumplan con el filtro
 
+            tag: busqueda del usuario
+            type_tag: tipo de filtrado
+        """
+
+        songs = []
+        try:
+            if songs == []:
+                songs = self.find_song(tag, type_tag)
+                if songs == []:
+                    print(f"WARNING: No se encontro la cancion solicitada -> {(tag, type_tag)}")
+                    return songs
+            return songs
+        except Exception as e:
+            print(e)
 
     def find_song(self, tag, type_tag):
+        '''
+            Dado una cadena y un tipo de filtrado de busca por todas las canciones que cumplan con la pedicion del cliente y devuelve una lista con ellas.
+
+            tag: busqueda del usuario
+            type_tag: tipo de filtrado
+        '''
         _songs = []
-        print(tag, type_tag)
         if type_tag == 3: #See all
             return os.listdir(self.path)
         for mn in os.listdir(self.path):
             mp3 = eyed3.load(os.path.join(self.path, mn))
-            # Put genre with ML
-            print("TTTTTTTTT", mn, getattr(mp3.tag, TAG[type_tag]))
             if TAG[type_tag] == TAG[1] and getattr(mp3.tag, TAG[type_tag]) == None:
                 print(f'{mn} no tiene genero')
                 mp3.tag.genre = self.genre_classifier.predict(extract_carcteristics(os.path.join(self.path, mn)))
-                print('ZZZZZZZZZZZZZZZZZZZZZZZ')
                 mp3.tag.save()
                 print(f'{mn} genero: {mp3.tag.genre}')
-            print("PPPPPPPP", str(getattr(mp3.tag, TAG[type_tag])).lower())
             if re.search(str(tag).lower(), str(getattr(mp3.tag, TAG[type_tag])).lower()):
                 _songs.append(mn)
         return _songs
 
     def send_music_data(self, music_name, _start=0):
+        """
+            Crea un socket para enviar la cancion al request y retorna el puerto de escucha y la duracion de la cancion
+
+            music_name: nombre de la cancion
+            _start: punto de inicio de la cancion
+        """
+
         host_ip, _ = self.address.split(":")
         server_socket = socket.socket()
         server_socket.bind((host_ip, 0))
         port = server_socket.getsockname()[1]
-        t1 = threading.Thread(target=self._send_frames, args=([server_socket, music_name, host_ip, port, _start]))
+        t1 = threading.Thread(target=self._send_frames, args=([server_socket, music_name, _start]))
         t1.start()
         return port, get_duration(os.path.join(self.path, music_name))
 
-    def _send_frames(self, server_socket, music_name, r_ip, port, _start=0):
+    def _send_frames(self, server_socket, music_name, _start=0):
+        """
+            Envia los frames de la cancion al request
+
+            server_socket: server socket
+            music_name: nombre de la cancion
+            _start: punto de inicio de la cancion
+        """
+
+
         server_socket.listen(5)
-        CHUNK = 1024
 
         music_file = AudioSegment.from_file(os.path.join(self.path, music_name))
         _slice = 10
         start = _start
         end = start + _slice
-
-        print('server listening at',(r_ip, port))
 
         client_socket,_ = server_socket.accept()
     
@@ -164,8 +189,14 @@ class MusicDataNode:
                 break
     
     def replicate_song(self, music_name):
+        """
+            Replica la cancion en todos los music data conocidos
+
+            music_name: nombre de la cancion
+        """
+
         for address in  self.music_data_list[1:]:
-            node = get_music_data_instance(address)
+            node = get_node_instance(address, 'MUSIC_DATA')
             if not node.contain_song(music_name):
                 print(f'Replicando: {address}')
                 replicate_send_thread = threading.Thread(target=self.send_replicate_song, args=([music_name, node]))
@@ -174,9 +205,20 @@ class MusicDataNode:
                 print("REPLICA: El archivo ya se ha replicado")
 
     def contain_song(self, music_name):
+        """
+            Verifica si la cancion ya se encuentra en el music data
+        """
+
         return music_name in os.listdir(path=self.path)
 
     def send_replicate_song(self, music_name, node):
+        """
+            Envia una replica de la cancion al music data
+
+            music_name: nombre de la cancion
+            node: music data al que se envia la cancion
+        """
+
         host_ip, _ = self.address.split(':')
         CHUNK_SIZE = 5 * 1024
         FILE = os.path.join(self.path, music_name)
@@ -201,6 +243,14 @@ class MusicDataNode:
             s.close()
 
     def recv_replicate_song(self, music_name, md_add, port):
+        """
+            Recibe una replica de la cancion del music data
+
+            music_name: nombre de la cancion
+            md_add: direccion del music data que envia la cancion
+            port: puerto de escucha del music data
+        """
+
         host_ip, _ = md_add.split(':')
         CHUNK_SIZE = 5 * 1024
         FILE = os.path.join(self.path, music_name)
@@ -228,6 +278,13 @@ class MusicDataNode:
 
 
     def put_upload_song(self, song_name, request_conn):
+        """
+            Recibe una cancion del request y la guarda en el music data
+
+            song_name: nombre de la cancion
+            request_conn: tupla con ip y puerto del socket del request
+        """
+
         CHUNK_SIZE = 5 * 1024
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect(request_conn)
