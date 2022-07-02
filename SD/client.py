@@ -201,6 +201,7 @@ class ClientNode:
         else:
             print("ERROR: Invalid path")
 
+
     def stopped(self, tecla):
         if str(tecla) == 'Key.space':
             self.is_paused = not self.is_paused
