@@ -15,7 +15,7 @@ if __name__ == '__main__':
     
     X, y, groups = get_X_y(data)
     X = scaler_data(X)
-    y, _ = encode_names(y)
+    y, y_genre = encode_names(y)
     
     Xdf = pd.DataFrame(X)
     ydf = pd.DataFrame(y)
@@ -29,22 +29,22 @@ if __name__ == '__main__':
     # keras_score, keras_partition, keras_mean, history = keras.evaluate(Xdf, ydf, groups)
 
     kmeans = KMeansClustering()
-    kmeans.kmeans(X)
+    kmeans.kmeans(X, y_genre)
     homogeneity, completeness, s_mean = kmeans.evaluate(X, y)
 
-    # kmedoids = KMedoidsClustering()
-    # kmedoids.kmedoids(X)
-    # med_homogeneity, med_completeness, med_s_mean = kmedoids.evaluate(X, y)
+    kmedoids = KMedoidsClustering()
+    kmedoids.kmedoids(X, y_genre)
+    med_homogeneity, med_completeness, med_s_mean = kmedoids.evaluate(X, y)
 
-    # print("Aprendizaje Supervisado")
-    # print(f"{Fore.GREEN} Naive Bayer: best_score={nb_score} mean={nb_mean} {Style.RESET_ALL}")
-    # print(f"{Fore.GREEN} ID3: best_score={id3_score} mean={id3_mean} {Style.RESET_ALL}")
-    # print(f"{Fore.GREEN} ID3 (randomforest): best_score={id31_score} mean={id31_mean} {Style.RESET_ALL}")
-    # print(f"{Fore.GREEN} KNN: best_score={knn_score} mean={knn_mean} {Style.RESET_ALL}")
-    # print(f"{Fore.GREEN} SVM: best_score={svm_score} mean={svm_mean} {Style.RESET_ALL}")
+    print("Aprendizaje Supervisado")
+    print(f"{Fore.GREEN} Naive Bayer: best_score={nb_score} mean={nb_mean} {Style.RESET_ALL}")
+    print(f"{Fore.GREEN} ID3: best_score={id3_score} mean={id3_mean} {Style.RESET_ALL}")
+    print(f"{Fore.GREEN} ID3 (randomforest): best_score={id31_score} mean={id31_mean} {Style.RESET_ALL}")
+    print(f"{Fore.GREEN} KNN: best_score={knn_score} mean={knn_mean} {Style.RESET_ALL}")
+    print(f"{Fore.GREEN} SVM: best_score={svm_score} mean={svm_mean} {Style.RESET_ALL}")
     # # print(f"{Fore.GREEN} Keras: best_score={keras_score} mean={keras_mean} {Style.RESET_ALL}")
     # print("")
 
     print("Aprendizaje No Supervisado")
     print(f"{Fore.GREEN} K-Means: homogeneity={homogeneity} completeness={completeness} silhouette mean={s_mean} {Style.RESET_ALL}")
-    # print(f"{Fore.GREEN} K-Medoids: homogeneity={med_homogeneity} completeness={med_completeness} silhouette mean={med_s_mean} {Style.RESET_ALL}")
+    print(f"{Fore.GREEN} K-Medoids: homogeneity={med_homogeneity} completeness={med_completeness} silhouette mean={med_s_mean} {Style.RESET_ALL}")

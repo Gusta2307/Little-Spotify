@@ -180,9 +180,10 @@ class KMeansClustering:
     def __init__(self, n_clusters=15) -> None:
         self.n_clusters = n_clusters
         self.clusters = {}  # dict <key=cluster, value=song>
+        self.cluster_genre = {}
 
 
-    def kmeans(self, X, n_init=3, init='random', tol=1e-4, random_state=170, verbose=False):
+    def kmeans(self, X, y_genre, n_init=3, init='random', tol=1e-4, random_state=170, verbose=False):
         model = KMeans(n_clusters=self.n_clusters,
                         n_init=n_init,
                         init=init,
@@ -191,7 +192,7 @@ class KMeansClustering:
                         verbose=verbose).fit(X)
 
         self.y_pred = model.predict(X)
-        self.build_clusters(model.labels_)
+        self.build_clusters(model.labels_, y_genre)
 
 
     def evaluate(self, X, y):
@@ -201,9 +202,10 @@ class KMeansClustering:
         return homogeneity, completeness, s_mean
 
 
-    def build_clusters(self, list_clusters):
+    def build_clusters(self, list_clusters, y_genre):
         for i in range(self.n_clusters):
             self.clusters[i + 1] = []
+            self.cluster_genre[i + 1] = y_genre[i]
 
         for i in range(len(list_clusters)):
             cluster = list_clusters[i] + 1
@@ -214,12 +216,13 @@ class KMedoidsClustering:
     def __init__(self, n_clusters=15) -> None:
         self.clusters = {}
         self.n_clusters = n_clusters
+        self.cluster_genre = {}
 
 
-    def kmedoids(self, X, init='random', random_state=127, verbose=False):
+    def kmedoids(self, X, y_genre, init='random', random_state=127, verbose=False):
         kmedoids = KMedoids(self.n_clusters, init=init, random_state=random_state).fit(X)
         self.y_pred = kmedoids.predict(X)
-        self.build_clusters(kmedoids.labels_)
+        self.build_clusters(kmedoids.labels_, y_genre)
 
 
     def evaluate(self, X, y):
@@ -229,10 +232,12 @@ class KMedoidsClustering:
         return homogeneity, completeness, s_mean
 
 
-    def build_clusters(self, list_clusters):
+    def build_clusters(self, list_clusters, y_genre):
         for i in range(self.n_clusters):
             self.clusters[i + 1] = []
+            self.cluster_genre[i + 1] = y_genre[i]
 
         for i in range(len(list_clusters)):
             cluster = list_clusters[i] + 1
             self.clusters[cluster].append(i + 1)
+        

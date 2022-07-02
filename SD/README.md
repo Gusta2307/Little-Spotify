@@ -10,7 +10,7 @@ El sistema cuenta con diferentes tipos de nodos donde cada uno tiene un rol o fu
 
 - **Music Data Node:** Los nodos de este tipo son los encargados de almacenar canciones; además tiene como función realizar una búsqueda entre todas estas, para devolver las que cumplan con las peticiones de filtrado de los clientes de acuerdo a los metadatos de las canciones, dígase, título, género y artista. 
 - **Request Node:** Este nodo es el intermediario entre le cliente y los nodos de almacenamiento; por lo cual es el encargado de recibir las peticiones de los clientes y enviarlas a todos los nodos de almacenamiento conectados, estas petiones pueden ser:
-    1.  Búsqueda de canciones de acuerdo a los metadatos de las estas. 
+    1. Búsqueda de canciones de acuerdo a los metadatos de estas. 
     2. Listar todas las canciones que se encuentran en el sistema.
     3. Subir una canción al sistema.
     4. Reproducir una canción.
@@ -25,8 +25,8 @@ Además el sistema posee una estructura que permite que al conectarse un nuevo n
 Al usuario decidir la reproducción de una canción específica, el nodo de almacenamiento que le da respuesta a esta petición, se encarga de crea una réplica de la misma en todos los nodos de almacenamiento conectados a el, siempre y cuando este no contenga dicha canción.
 
 Existen dos posibles fallas en el sistema por desconexión de nodos, para los cuales el momento más crítico sería si se estuviera reproduciendo una canción en ese instante, veamos como el sistema actúa en cada caso:
-1. En caso de que se desconecte un `music_data`, el request corespondiente se reconecta con otro `music_data` que estuviera conectado a este y le realiza el pedido necesario para que continue la reproducción.
-2. En caso de que el `request` se desconecte, el cliente de inmediato de conecta a otro request que estuviera conectado a este y nuevamente realiza el pedido necesario para que continue la reproducción.
+1. En caso de que se desconecte un `music_data`, el request correspondiente se reconecta con otro `music_data` que estuviera conectado a este y le realiza el pedido necesario para que continue la reproducción.
+2. En caso de que el `request` se desconecte, el cliente de inmediato se conecta a otro request que estuviera conectado a este y nuevamente realiza el pedido necesario para que continue la reproducción.
 
 ## Parte de ML
 
