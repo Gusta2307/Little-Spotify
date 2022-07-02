@@ -1,9 +1,3 @@
----
-noteId: "7b649a70f9aa11eca3f0b36613dc9758"
-tags: []
-
----
-
 # Reporte del Proyecto
 
 ## Primera Idea : ID3 y Naive Bayes
@@ -287,7 +281,9 @@ Los valores de las métricas son:
 
 Veamos como se ven los clusters gráficamente:
 
-![Gráfica de clusters con K-Means con GTZAN+](img/c_km.png)
+<p float="left">
+    <img src="img/c_km.png" width="300"/>
+</p>
 
 Se obtuvieron valores bajos de homogeneidad e integridad, lo que indica que los elementos en los clusters no pertencen a una única clase, además de que no hay un alto número de elementos de una misma clase en un mismo cluster. Por otro lado se obtuvo un valor del coeficiente de silhouette promedio cercano a 0, lo que indica que casi todos los clusters están solapados. Todo esto se reafirma al observar la gŕafica anterior.
 
@@ -299,6 +295,9 @@ También se probó el mismo algoritmo tomando `init = kmeans++` para comparar si
 | Integridad   |   0.40   |
 | Coeficiente de silhouette    |   0.10  |
 
+<p float="left">
+    <img src="img/c_km++.png" width="300"/>
+</p>
 
 Como se puede notar prácticamente no hay cambios.
 
@@ -315,6 +314,9 @@ siguientes resultados:
 | Integridad   |   0.39   |
 | Coeficiente de silhouette    |   0.06  |
 
+<p float="left">
+    <img src="img/c_kmed_r.png" width="300"/>
+</p>
 
 Luego probamos utilizando init='k-means++' y se obtuvo:
 
@@ -324,25 +326,38 @@ Luego probamos utilizando init='k-means++' y se obtuvo:
 | Integridad   |   0.34   |
 | Coeficiente de silhouette    |   0.03  |
 
-Como podemos observar, disminuyo el por ciento de cada una de las metricas en comparacion con la
-seleccion de los centroides aleatoriamente.
+<p float="left">
+    <img src="img/c_kmed++.png" width="300"/>
+</p>
+
+Como podemos observar, disminuyó el porciento de cada una de las métricas en comparación con la
+selección de los centroides aleatoriamente.
 Estos resultados con respecto a los valores obtenidos con K-Means, fueron un poco mas bajos.
 
 ### Octava Idea: DBSACN
-Como con K-Means y K-Medioide, no se obtuvieron resultados muy altos, decidimos probar con DBSCAN,
+Como con K-Means y K-Medioide no se obtuvieron resultados muy altos, decidimos probar con DBSCAN,
 para ver si era capaz de inferir los 15 clusters que exiten por genero.
 
 Se obtuvo el siguiente resultado:
-FOTO DE DBSCAN
 
-Coloco todos los datos en el mismo cluster.
+<p float="left">
+    <img src="img/c_dbscan.png" width="300"/>
+</p>
+
+Colocó todos los datos en el mismo cluster.
 
 ### Novena Idea: Agrupamiento por aglomeracion
 
-Por ultimo, decidimos probar con el metodo de agrupamiento por aglomeracion, el cual es un metodo de
-agrupamiento jerarquico.
+Por último, decidimos probar con el método de agrupamiento por aglomeración, el cual es un método de
+agrupamiento jerárquico.
 
-Se probo con la distancia euclideana y con linkage (criterio de enlace) 'ward', 'complete' y 'averaga'.
+Se probó con la distancia euclideana y con linkage (criterio de enlace) 'ward', 'complete' y 'average'.
+Generalmente las mas usadas son 'complete' y 'average', pero en python viene por defecto ward y
+decidimos probar con este método también.
+
+ - ward: aumento de la varianza de los grupos mezclados
+ - complete: distancia maxima entre los elementos de cada grupo (agrupamiento de enlace simple)
+ - average: distancia media entre los elementos de cada grupo (agrupamiento de enlace promedio)
 
 Se obtuvieron los siguientes resultados:
 
@@ -354,7 +369,13 @@ Criterio ward
 | Integridad   |   0.39   |
 | Coeficiente de silhouette    |   0.07  |
 
-Los resultados son muy similares a los resultados de K-Means, aun los clusters se encuentran solapados.
+<p float="left">
+    <img src="img/s_agg_ward.png" width="300"/>
+    <img src="img/j_ward.png" width="300"/>
+</p>
+
+
+Los resultados son muy similares a los que se obtienen con K-Means ya que los clusters se encuentran solapados.
 
 
 Criterio complete
@@ -365,8 +386,13 @@ Criterio complete
 | Integridad   |   0.39   |
 | Coeficiente de silhouette    |   0.08  |
 
-La homogeneidad disminuyo respecto al valor del criterio ward, la integridad se mantuvo igual y 
-el coeficiente de silhoutte no aumento practicamente nada.
+<p float="left">
+    <img src="img/s_agg_complete.png" width="300"/>
+    <img src="img/j_complete.png" width="300"/>
+</p>
+
+La homogeneidad disminuyó respecto al valor del criterio ward, la integridad se mantuvo igual y 
+el coeficiente de silhoutte no aumentó prácticamente nada, por lo que los clusters siguen solapados.
 
 
 Criterio average
@@ -376,7 +402,12 @@ Criterio average
 | Integridad   |   0.33   |
 | Coeficiente de silhouette    |   0.10  |
 
-La homogeneidad disminuyo considerablemente con respecto al valor del criterio ward y el criterio complete, lo que indica que la mayoria de los elementos no pertenecen a la misma clase, la integridad tambien disminuyo un poco y el coeficiente de silhoutte no aumento practicamente nada.
+<p float="left">
+    <img src="img/s_agg_average.png" width="300"/>
+    <img src="img/j_average.png" width="300"/>
+</p>
+
+La homogeneidad disminuyó considerablemente con respecto al valor del criterio ward y el criterio complete, lo que indica que la mayoría de los elementos no pertenecen a la misma clase, la integridad también disminuyó un poco y el coeficiente de silhoutte no aumentó prácticamente nada, por lo que los clusters aun siguen solapados.
 
 ## Bibliografía
 

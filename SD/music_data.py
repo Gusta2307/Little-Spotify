@@ -209,36 +209,43 @@ class MusicDataNode:
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.connect((host_ip, int(port)))
 
-            with open(FILE, "wb") as f:        
-                chunk = s.recv(CHUNK_SIZE)
-
-                while chunk:
-                    f.write(chunk)
+            with open(FILE, "wb") as f:
+                try:     
                     chunk = s.recv(CHUNK_SIZE)
-                    if chunk == b'':
-                        f.close()
-                        break
+                    while chunk:
+                        f.write(chunk)
+                        chunk = s.recv(CHUNK_SIZE)
+                        if chunk == b'':
+                            f.close()
+                            break
+                except:
+                    f.close()
+                    s.close()
+                    os.remove(FILE)
                 
             print(f'Replicacion Completada: {music_name} {self.address}')
             s.close()
 
-    def put_upload_song(self, song_name, request_conn):
-        # host_ip, _ = request_address.split(':')
-        CHUNK_SIZE = 5 * 1024
 
+    def put_upload_song(self, song_name, request_conn):
+        CHUNK_SIZE = 5 * 1024
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect(request_conn)
 
-            with open(os.path.join(self.path, song_name), "wb") as f:        
-                data = s.recv(CHUNK_SIZE)
-
-                while data:
-                    f.write(data)
+            with open(os.path.join(self.path, song_name), "wb") as f:   
+                try:     
                     data = s.recv(CHUNK_SIZE)
 
-                    if data == b'':
-                        break
-                f.close()
+                    while data:
+                        f.write(data)
+                        data = s.recv(CHUNK_SIZE)
+                        if data == b'':
+                            break
+                    f.close()
+                except:
+                    f.close()
+                    s.close()
+                    os.remove(os.path.join(self.path, song_name))
 
             print(f'SONG {song_name} UPLOADED TO {self.address}')
             s.close()

@@ -78,7 +78,6 @@ class RequestNode:
                     
                     #return md_add, song
             except:
-                print("GFGFGFGFGFGFGFGFGFGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG")
                 continue
         return result
                 
@@ -88,13 +87,12 @@ class RequestNode:
             try: 
                 
                 music_node = get_music_data_instance(md)
-
+                if md not in self.music_data_list:
+                    self.music_data_list.append(md)
                 port, duration = music_node.send_music_data(music_name, duration)
 
                 server_socket = socket.socket()
-                c_host_ip, _ = self.address.split(':')
                 server_socket.bind((self.address.split(':')[0], 0))
-                print('server client listening at',(c_host_ip, server_socket.getsockname()[1]))
 
                 t2 = threading.Thread(target=self._recv_song_frames, args=([md, port, server_socket, music_node, music_name]))
                 t3 = threading.Thread(target=music_node.replicate_song, args=([music_name]))
@@ -103,7 +101,6 @@ class RequestNode:
                 t3.start()
 
 
-                print("duration: ", duration)
                 return server_socket.getsockname()[1], int(duration)
             except:
                 continue
@@ -118,16 +115,16 @@ class RequestNode:
         # create socket
         client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         socket_address = (host_ip, port)
-        print('server listening at',socket_address)
+        # print('server listening at',socket_address)
         client_socket.connect(socket_address) 
-        print("CLIENT CONNECTED TO",socket_address)
+        # print("CLIENT CONNECTED TO",socket_address)
 
         server_socket.listen(5)
         
         data = b""
         payload_size = struct.calcsize("Q")
         c,_ = server_socket.accept()
-        current_duration = 0 #+= CHUNK/44100
+        current_duration = 0 
         while True:
             try:
                 try:
@@ -139,10 +136,7 @@ class RequestNode:
                         try:
                             temp_music_node = get_music_data_instance(md)
                             if temp_music_node.contain_song(music_name):
-                                print("GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG")
                                 _port = temp_music_node.send_music_data(music_name, int(current_duration))
-                                print("PORT:", _port)
-                                print((md.split(':')[0], _port))
                                 client_socket.close()
                                 client_socket = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
                                 client_socket.connect((md.split(':')[0], _port))
@@ -150,7 +144,6 @@ class RequestNode:
                                 data = b""
                                 payload_size = struct.calcsize("Q")
                                 time.sleep(2)
-                                print("IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII")
                                 break
 
                         except:
@@ -173,8 +166,6 @@ class RequestNode:
                 frame_data = data[:msg_size]
                 data  = data[msg_size:]
                 frame = pickle.loads(frame_data)
-                print(current_duration)
-                # print(frame)
                 if frame == b'':
                     server_socket.close()
                     client_socket.close()
@@ -184,17 +175,12 @@ class RequestNode:
                     a = pickle.dumps(frame)
                     message = struct.pack("Q",len(a))+a
                     c.sendall(message)
-                    
-
-                # stream.write(frame)
-
             except:
                 server_socket.close()
                 client_socket.close()
                 break
         server_socket.close()
         client_socket.close()
-        print('Audio closed')
 
     def update_music_data_list(self):
         while True:
@@ -236,14 +222,12 @@ class RequestNode:
         return False
 
     def put_song_in_music_data(self, path, client_conn):
-        print("PUT SONG IN MUSIC DATA REQUEST")
         # host_ip_client, _ = client_address.split(':')
         request_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # socket_address = (host_ip_client, port_client)
         # print('server listening at', client_address)
 
         request_socket.connect(client_conn)        
-        print("REQUEST CONNECTED TO CLIENT WITH ADDRESS", client_conn)
 
         music_data_node = get_music_data_instance(self.music_data_address)
         
