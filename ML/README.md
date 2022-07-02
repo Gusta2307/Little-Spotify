@@ -282,7 +282,7 @@ Los valores de las métricas son:
 Veamos como se ven los clusters gráficamente:
 
 <p float="left">
-    <img src="img/c_km.png" width="300"/>
+    <img src="img/c_km.png" width="800"/>
 </p>
 
 Se obtuvieron valores bajos de homogeneidad e integridad, lo que indica que los elementos en los clusters no pertencen a una única clase, además de que no hay un alto número de elementos de una misma clase en un mismo cluster. Por otro lado se obtuvo un valor del coeficiente de silhouette promedio cercano a 0, lo que indica que casi todos los clusters están solapados. Todo esto se reafirma al observar la gŕafica anterior.
@@ -296,7 +296,7 @@ También se probó el mismo algoritmo tomando `init = kmeans++` para comparar si
 | Coeficiente de silhouette    |   0.10  |
 
 <p float="left">
-    <img src="img/c_km++.png" width="300"/>
+    <img src="img/c_km++.png" width="800"/>
 </p>
 
 Como se puede notar prácticamente no hay cambios.
@@ -315,7 +315,7 @@ siguientes resultados:
 | Coeficiente de silhouette    |   0.06  |
 
 <p float="left">
-    <img src="img/c_kmed_r.png" width="300"/>
+    <img src="img/c_kmed_r.png" width="800"/>
 </p>
 
 Luego probamos utilizando init='k-means++' y se obtuvo:
@@ -327,7 +327,7 @@ Luego probamos utilizando init='k-means++' y se obtuvo:
 | Coeficiente de silhouette    |   0.03  |
 
 <p float="left">
-    <img src="img/c_kmed++.png" width="300"/>
+    <img src="img/c_kmed++.png" width="800"/>
 </p>
 
 Como podemos observar, disminuyó el porciento de cada una de las métricas en comparación con la
@@ -341,7 +341,7 @@ para ver si era capaz de inferir los 15 clusters que exiten por genero.
 Se obtuvo el siguiente resultado:
 
 <p float="left">
-    <img src="img/c_dbscan.png" width="300"/>
+    <img src="img/c_dbscan.png" width="500"/>
 </p>
 
 Colocó todos los datos en el mismo cluster.
@@ -370,8 +370,8 @@ Criterio ward
 | Coeficiente de silhouette    |   0.07  |
 
 <p float="left">
-    <img src="img/s_agg_ward.png" width="300"/>
-    <img src="img/j_ward.png" width="300"/>
+    <img src="img/s_agg_ward.png" width="800"/>
+    <img src="img/j_ward.png" width="500"/>
 </p>
 
 
@@ -387,8 +387,8 @@ Criterio complete
 | Coeficiente de silhouette    |   0.08  |
 
 <p float="left">
-    <img src="img/s_agg_complete.png" width="300"/>
-    <img src="img/j_complete.png" width="300"/>
+    <img src="img/s_agg_complete.png" width="800"/>
+    <img src="img/j_complete.png" width="500"/>
 </p>
 
 La homogeneidad disminuyó respecto al valor del criterio ward, la integridad se mantuvo igual y 
@@ -403,8 +403,8 @@ Criterio average
 | Coeficiente de silhouette    |   0.10  |
 
 <p float="left">
-    <img src="img/s_agg_average.png" width="300"/>
-    <img src="img/j_average.png" width="300"/>
+    <img src="img/s_agg_average.png" width="800"/>
+    <img src="img/j_average.png" width="500"/>
 </p>
 
 La homogeneidad disminuyó considerablemente con respecto al valor del criterio ward y el criterio complete, lo que indica que la mayoría de los elementos no pertenecen a la misma clase, la integridad también disminuyó un poco y el coeficiente de silhoutte no aumentó prácticamente nada, por lo que los clusters aun siguen solapados.
