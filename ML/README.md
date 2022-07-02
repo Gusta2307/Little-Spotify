@@ -355,7 +355,7 @@ Se probó con la distancia euclideana y con linkage (criterio de enlace) 'ward',
 Generalmente las mas usadas son 'complete' y 'average', pero en python viene por defecto ward y
 decidimos probar con este método también.
 
- - ward: aumento de la varianza de los grupos mezclados
+ - ward: minimiza la varianza total dentro de los clúster
  - complete: distancia maxima entre los elementos de cada grupo (agrupamiento de enlace simple)
  - average: distancia media entre los elementos de cada grupo (agrupamiento de enlace promedio)
 
