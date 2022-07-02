@@ -1,3 +1,9 @@
+---
+noteId: "7b649a70f9aa11eca3f0b36613dc9758"
+tags: []
+
+---
+
 # Reporte del Proyecto
 
 ## Primera Idea : ID3 y Naive Bayes
@@ -247,8 +253,131 @@ Después de haber probado diferentes algoritmos con varias modificaciones podemo
 
 Por otro lado, SVM no parece ser un mal algoritmo para clasificar canciones según el género, solo que creamos que necesita más datos, los cuales nos son difíciles de obtener; por lo que nos quedamos con Keras que tiene una efectividad de 0.65, que es muy similar a la de SVM pero la curva de aprendizaje se comporta mejor.
 
+## Retomando la investigación
 
-### 
+### Quinta idea: Random Forest
+
+Este algoritmo lo probamos, al inicio de la investigación, con nuestro propio dataset y los resultados no fueron para nada significativos, por lo que descartamos por completo la idea; por este motivo nunca se llegó a porbar con el dataset GTZAN+. Veamos que resultados podemos llegar a tener reafirma si hicimos bien en descartarla.
+
+La efectividad en promedio es de 0.70. Veamos como se comporta la curva de aprendizaje.
+
+![Curva de aprendizaje de Random Forest con GTZAN+](img/lc_rf.png)
+
+Random Forest consta de muchos árboles de decisión combinados por lo que es de esperar que obtenga un resultado más preciso en comparación con ID3.
+
+### Explorando de soluciones con algoritmos no supervisados
+
+En la exposición del proyecto nos sugirieron que también se podría utilizar para nuestro problema algoritmos no supervisados por lo que decidimos explorar por esta vía.
+
+En los algoritmos no supervisados no tenemos la posibilidad de directamentte clasificar los datos según el género al que pertenecen, por lo que se intentará agrupar los datos por género utilizando 15 clusters, uno por cada género.
+
+Para valorar ell rendimiento de los algoritmos nos basaremos en 3 métricas: homogeneidad, integridad y coeficiente de silhouette.
+
+### Sexta idea: K-Means
+
+Para este algoritmo tomamos `init = random` pues en clase práctica vimos que al seleccionar los centroides de manera aleatoria se podría obtener un mejor resultado.
+
+Los valores de las métricas son:
+
+| Métrica   | Valor |
+| ----------- | :-------: |
+| Homogeneidad |   0.39   |
+| Integridad   |   0.40   |
+| Coeficiente de silhouette    |   0.09  |
+
+Veamos como se ven los clusters gráficamente:
+
+![Gráfica de clusters con K-Means con GTZAN+](img/c_km.png)
+
+Se obtuvieron valores bajos de homogeneidad e integridad, lo que indica que los elementos en los clusters no pertencen a una única clase, además de que no hay un alto número de elementos de una misma clase en un mismo cluster. Por otro lado se obtuvo un valor del coeficiente de silhouette promedio cercano a 0, lo que indica que casi todos los clusters están solapados. Todo esto se reafirma al observar la gŕafica anterior.
+
+También se probó el mismo algoritmo tomando `init = kmeans++` para comparar si un cambio a la hora de seleccionar los centroides varía los resultados.
+
+| Métrica   | Valor |
+| ----------- | :-------: |
+| Homogeneidad |   0.39   |
+| Integridad   |   0.40   |
+| Coeficiente de silhouette    |   0.10  |
+
+
+Como se puede notar prácticamente no hay cambios.
+
+
+### Séptima idea: K-Medioide
+
+Como no se obtuvieron resultados muy satisfactorios con K-Means, decidimos probar con K-Medioide.
+Al igual que con K-Means se decidio probar primeramente con init='random', y se obtuvieron los
+siguientes resultados:
+
+| Métrica   | Valor |
+| ----------- | :-------: |
+| Homogeneidad |   0.36   |
+| Integridad   |   0.39   |
+| Coeficiente de silhouette    |   0.06  |
+
+
+Luego probamos utilizando init='k-means++' y se obtuvo:
+
+| Métrica   | Valor |
+| ----------- | :-------: |
+| Homogeneidad |   0.33   |
+| Integridad   |   0.34   |
+| Coeficiente de silhouette    |   0.03  |
+
+Como podemos observar, disminuyo el por ciento de cada una de las metricas en comparacion con la
+seleccion de los centroides aleatoriamente.
+Estos resultados con respecto a los valores obtenidos con K-Means, fueron un poco mas bajos.
+
+### Octava Idea: DBSACN
+Como con K-Means y K-Medioide, no se obtuvieron resultados muy altos, decidimos probar con DBSCAN,
+para ver si era capaz de inferir los 15 clusters que exiten por genero.
+
+Se obtuvo el siguiente resultado:
+FOTO DE DBSCAN
+
+Coloco todos los datos en el mismo cluster.
+
+### Novena Idea: Agrupamiento por aglomeracion
+
+Por ultimo, decidimos probar con el metodo de agrupamiento por aglomeracion, el cual es un metodo de
+agrupamiento jerarquico.
+
+Se probo con la distancia euclideana y con linkage (criterio de enlace) 'ward', 'complete' y 'averaga'.
+
+Se obtuvieron los siguientes resultados:
+
+Criterio ward
+
+| Métrica   | Valor |
+| ----------- | :-------: |
+| Homogeneidad |   0.36   |
+| Integridad   |   0.39   |
+| Coeficiente de silhouette    |   0.07  |
+
+Los resultados son muy similares a los resultados de K-Means, aun los clusters se encuentran solapados.
+
+
+Criterio complete
+
+| Métrica   | Valor |
+| ----------- | :-------: |
+| Homogeneidad |   0.25   |
+| Integridad   |   0.39   |
+| Coeficiente de silhouette    |   0.08  |
+
+La homogeneidad disminuyo respecto al valor del criterio ward, la integridad se mantuvo igual y 
+el coeficiente de silhoutte no aumento practicamente nada.
+
+
+Criterio average
+| Métrica   | Valor |
+| ----------- | :-------: |
+| Homogeneidad |   0.02   |
+| Integridad   |   0.33   |
+| Coeficiente de silhouette    |   0.10  |
+
+La homogeneidad disminuyo considerablemente con respecto al valor del criterio ward y el criterio complete, lo que indica que la mayoria de los elementos no pertenecen a la misma clase, la integridad tambien disminuyo un poco y el coeficiente de silhoutte no aumento practicamente nada.
+
 ## Bibliografía
 
 - [Procesando audio con Python](https://programmerclick.com/article/4979571746/)
