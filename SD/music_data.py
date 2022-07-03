@@ -14,8 +14,6 @@ from genre_clasification import (
     extract_carcteristics
 )
 
-
-
 @Pyro4.expose
 class MusicDataNode:
     def __init__(self, address, path):
@@ -38,7 +36,7 @@ class MusicDataNode:
 
     def add_music_data(self, address):
         """
-            Agrega la dirrecion de un music data a la lista de music data conocidos
+            Agrega la direccion de un music data a la lista de music data conocidos
 
             address: direccion del music data
         """
@@ -51,7 +49,6 @@ class MusicDataNode:
 
             music_address: direccion del nuevo nodo
         """
-
         self._music_data_list = [self.address]
         if music_address is not None:
             node = get_node_instance(music_address, 'MUSIC_DATA')
@@ -61,6 +58,7 @@ class MusicDataNode:
                     for addr in list:
                         if addr == self.address:
                             continue
+                        self._music_data_list.append(addr)
                         node = get_node_instance(addr, 'MUSIC_DATA')
                         if node is not None:
                             node.add_music_data(self.address)
@@ -80,7 +78,7 @@ class MusicDataNode:
                 node = get_node_instance(addr, 'MUSIC_DATA')
                 if node is None:
                     self._music_data_list.remove(addr)
-            time.sleep(1) 
+            time.sleep(1)
     
     def print_node_info(self):
         """
@@ -276,7 +274,6 @@ class MusicDataNode:
             print(f'Replicacion Completada: {music_name} {self.address}')
             s.close()
 
-
     def put_upload_song(self, song_name, request_conn):
         """
             Recibe una cancion del request y la guarda en el music data
@@ -327,18 +324,16 @@ def main(address, md_address, path):
         musicdata_node_list_thread = threading.Thread(target=node.update_music_data_list)
         musicdata_node_list_thread.start()
         
-        # print_thread = threading.Thread(target = node.print_node_info)
-        # print_thread.start()
+        print_thread = threading.Thread(target = node.print_node_info)
+        print_thread.start()
     
     else:
         print(f'Error: Could not connect to the network, no music data with address: {md_address}')
 
 
-
-# ? <ADD> <MD_ADD> <CHORD_ADD> <BITS> <PATH>
+# ? <ADD> <MD_ADD> <PATH>
 
 if __name__ == '__main__':
-    print(sys.argv)
     if len(sys.argv) == 3:
         main(sys.argv[1], None, sys.argv[2])
     elif len(sys.argv) == 4:

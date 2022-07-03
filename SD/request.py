@@ -37,7 +37,7 @@ class RequestNode:
     
     def join(self, request_address):
         """
-            Agrega un nuevo nodo music data a la red
+            Agrega un nuevo nodo request a la red
 
             request_address: direccion del request
         """
@@ -101,8 +101,7 @@ class RequestNode:
             try: 
                 
                 music_node = get_node_instance(md, 'MUSIC_DATA')
-                if md not in self.music_data_list:
-                    self.music_data_list.append(md)
+
                 port, duration = music_node.send_music_data(music_name, duration)
 
                 server_socket = socket.socket()
@@ -152,7 +151,6 @@ class RequestNode:
                 except:
                     temp_music_node = None
                     for md in self.music_data_list:
-                        print(md)
                         try:
                             temp_music_node = get_node_instance(md, 'MUSIC_DATA')
                             if temp_music_node.contain_song(music_name):
@@ -202,6 +200,16 @@ class RequestNode:
         server_socket.close()
         client_socket.close()
 
+    
+    def join_music_data(self, md_add):
+        """
+            Agrega un music data a la lista de music data
+
+            md_add: direccion del music data
+        """
+        music_node = get_node_instance(self.music_data_address, 'MUSIC_DATA')
+        music_node.join(md_add)
+    
     def update_music_data_list(self):
         """
             Mantiene actualizados el music data al que esta conectado
@@ -258,7 +266,7 @@ class RequestNode:
             Recibe la nueva cancion que el cliente quiere subir y la guarda en el music_data correspondiente
 
             path: ruta de la cancion
-            client_conn: ip y puerto por el cual el cliente recibe la cancion
+            client_conn: ip y puerto por el cual el request recibe la cancion
         """
         request_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         request_socket.connect(client_conn)        

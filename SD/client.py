@@ -17,7 +17,6 @@ class ClientNode:
         self.request_node_address = r_address
         self._request_node_list = []
         self.is_paused = False
-        self.is_running = False
 
     def run(self):
         """
@@ -36,7 +35,7 @@ class ClientNode:
 
         while True:
             view_console("Welcome! What do you want to do?",
-                         ['Play music', 'Upload music', 'Exit'])
+                         ['Play music', 'Upload music'])
 
             try:
                 options = int(input())
@@ -60,9 +59,6 @@ class ClientNode:
                     view_console("Enter path of song: ")
                     path_song = input()
                     self.upload_song(path_song)
-                elif options == 2:
-                    self.is_running = False
-                    return
             except:
                 print("Somenthig went wrong! :/")
 
@@ -97,15 +93,12 @@ class ClientNode:
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         socket_address = (host_ip, port)
 
-        # print('server listening at', socket_address)
         client_socket.connect(socket_address)
-        # print("CLIENT CONNECTED TO", socket_address)
         data = b""
         payload_size = struct.calcsize("Q")
         current_duration = 0
         time.sleep(3)
         view_console(music_name)
-        # print("Now Playing")
         with Progress() as progress:
             song_progress = progress.add_task(
                 "[green]Playing...", total=duration)
@@ -128,11 +121,9 @@ class ClientNode:
                                     self.request_node_address, 'REQUEST')
                                 port, _ = r_node.play_song(
                                     md_add, music_name, current_duration)
-                                print((self.request_node_address.split(':')[0], port))
                                 client_socket.connect(
                                     (self.request_node_address.split(':')[0], port))
                                 data = b""
-                                # time.sleep(2)
                             else:
                                 print("ERROR: Missing connection with server.")
                                 return
@@ -140,7 +131,7 @@ class ClientNode:
                         progress.update(song_progress, advance=0,
                                         description="[green]Playing...")
                         while len(data) < payload_size:
-                            packet = client_socket.recv(4*1024)  # 4K
+                            packet = client_socket.recv(4*1024)  
                             current_duration += CHUNK/44100
                             if not packet:
                                 client_socket.close()
@@ -161,7 +152,6 @@ class ClientNode:
                                 escuchador.stop()
                                 return
 
-                        # if not self.is_paused:
                         frame_data = data[:msg_size]
                         data = data[msg_size:]
                         if frame_data == b'':
@@ -176,7 +166,6 @@ class ClientNode:
                                         description="[green]Playing...")
 
                         if not len(data) < msg_size:
-                            print('break A')
                             is_done = True
                             break
 
@@ -216,7 +205,6 @@ class ClientNode:
         """
         if str(tecla) == 'Key.space':
             self.is_paused = not self.is_paused
-            # print('Se ha pulsado la tecla ' + str(tecla), self.is_paused)
 
     def send_upload_song(self, path):
         """
@@ -300,7 +288,6 @@ class ClientNode:
         """
 
         while self.is_running:
-            print(self.is_running)
             try:
                 node = get_node_instance(self.request_node_address, 'REQUEST')
                 node.ping()
@@ -314,13 +301,9 @@ class ClientNode:
 def main(address, r_address):
     node = ClientNode(address, r_address)
     node.run()
-    node.is_running = True
-    print("RUNNING")
     check_connetion_thread = threading.Thread(target=node.check_connection, name="check_connection")
     check_connetion_thread.start()
 
-    # connect_to_server_thread = threading.Thread(target=node.connect_to_server, name="connect_to_server")
-    # connect_to_server_thread.start()
 
 # ? <MY_ADD> <R_ADD>
 

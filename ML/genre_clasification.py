@@ -4,7 +4,6 @@ import pandas as pd
 import numpy as np
 from sklearn.svm import SVC
 from sklearn.model_selection import StratifiedShuffleSplit
-from pydub import  AudioSegment
 from process_datas import (
     get_X_y,
     scaler_data,
@@ -32,10 +31,9 @@ class Genre_Clasf:
         
         best_model = None
         best_value = 0
-     
+
         X = pd.DataFrame(X)
         y = pd.DataFrame(y)
-        print("C")
         for train_idx, val_idx in splits:
             X_tr = X.loc[train_idx]
             y_tr = y.loc[train_idx]
@@ -46,12 +44,10 @@ class Genre_Clasf:
             y_tr = np.ravel(y_tr)
 
             model.fit(X_tr, y_tr)
-            print("B")
             score = model.score(X_val, y_val)
 
             if best_value < score:
                 best_value = score
-                print("A")
                 best_model = copy.deepcopy(model)
         
         self.model = best_model
@@ -83,10 +79,3 @@ def extract_carcteristics(path):
     X = [np.mean(chroma_stft), np.mean(rms), np.mean(zcr)] + _mfcc
 
     return [X]
-
-if __name__ == '__main__':
-    print("Hello")
-    X = [[0.386982411,0.08685213,0.136394362,6.572271824,32.55513,-6.295336723,15.30849552,-5.892954826,-3.577061892,-12.90241814,9.388485909,-10.50656033,5.537546158,-11.02626419,4.811300278,-9.899381638,4.567552567,-9.50390625,6.617300987]]
-    # gc = Genre_Clasf()
-    # print(gc.predict(X))
-
